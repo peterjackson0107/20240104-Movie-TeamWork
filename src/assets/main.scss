@@ -1,0 +1,33 @@
+
+@import "../../node_modules/bootstrap/scss/functions";
+
+@import "../../node_modules/bootstrap/scss/bootstrap.scss";
+
+@import "../assets/stylesheet/variables";
+
+@import url('https://fonts.googleapis.com/css2?family=Kdam+Thmor+Pro&display=swap');
+//去google font，點開文字旁邊的+，還後選擇import
+
+
+.body {
+    min-height: 100vh;
+    color: var(--color-text);
+    background: var(--color-background);
+    transition:color 0.5s,
+    background-color 0.5s;
+    line-height: 1.6;
+    font-family:
+        'jf-openhuninn-2.0',
+        'Kdam Thmor Pro',
+        sans-serif;
+    font-size: 15px;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    box-sizing: border-box;
+    }
+
+*{
+    font-family: 'jf-openhuninn-2.0';
+    margin: 0;
+}
