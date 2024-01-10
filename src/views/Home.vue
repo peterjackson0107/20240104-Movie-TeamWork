@@ -12,14 +12,14 @@ export default {
   computed: {
     playPerPage() {
       let cutArray = [];
-      for (let i = 0; i < this.objPlayMovies.length; i++) {
+      for (let i = 0; i < this.objPlayMovies.length; i+=this.itemsPerSlide) {
         cutArray.push(this.objPlayMovies.slice(i, i + this.itemsPerSlide));
       }
       return cutArray;
     },
     comePerPage() {
       let cutArray = [];
-      for (let i = 0; i < this.objComeMovies.length; i++) {
+      for (let i = 0; i < this.objComeMovies.length; i+=this.itemsPerSlide) {
         cutArray.push(this.objComeMovies.slice(i, i + this.itemsPerSlide));
       }
       return cutArray;
@@ -155,6 +155,91 @@ export default {
         console.error(error);
       }
     },
+    getPlayPerson(movieId) { //上映中 演員*5 + 導演*1
+        const options = {
+            method: "GET",
+            headers: {
+            accept: "application/json",
+            Authorization:
+                "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww",
+            },
+        };
+
+        // fetch(`https://api.themoviedb.org/3/movie/1029575/credits?language=en-US`, options)
+        fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?language=en-US`, options)
+            .then((response) => response.json())
+            .then((response) => {
+            const directors = response.crew.filter(
+                (person) => person.job === "Director"
+            );
+            const cast = response.cast.slice(0, 5);
+            console.log(directors);
+            console.log(cast);
+
+            let playPeople = [];
+            playPeople.push(directors);
+            playPeople.push(cast);
+            console.log('全部電影的上映中 演員 objPlayPerson', this.playPeople);
+            })
+            .catch((error) => {
+            console.error(error);
+            });
+    },
+    getComePerson(movieId) { //即將上映 演員*5 + 導演*1
+        const options = {
+            method: "GET",
+            headers: {
+            accept: "application/json",
+            Authorization:
+                "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww",
+            },
+        };
+
+        // fetch(`https://api.themoviedb.org/3/movie/1029575/credits?language=en-US`, options)
+        fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?language=en-US`, options)
+            .then((response) => response.json())
+            .then((response) => {
+            const directors = response.crew.filter(
+                (person) => person.job === "Director"
+            );
+            const cast = response.cast.slice(0, 5);
+            console.log(directors);
+            console.log(cast);
+
+            let comePeople = [];
+            comePeople.push(directors);
+            comePeople.push(cast);
+            this.objComePerson.push(comePeople);
+            // console.log('最後的人員 comePeople', comePeople);
+            console.log('全部電影的即將上映 演員 objComePerson', this.objComePerson);
+            })
+            .catch((error) => {
+            console.error(error);
+            });
+    },
+    getPlayTrailer(movieId) { //上映中 預告片
+        const options = {
+            method: "GET",
+            headers: {
+            accept: "application/json",
+            Authorization:
+                "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww",
+            },
+        };
+
+        // fetch(`https://api.themoviedb.org/3/movie/1029575/videos?language=en-US`, options)
+        fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?language=en-US`, options)
+            .then((response) => {
+              const firstTrailerKey = response.results?.[0]?.key;
+
+            const trailerLink = `https://www.youtube.com/watch?v=${firstTrailerKey}`;
+
+            console.log('PlayTrailerLink', trailerLink);
+            })
+            .catch((error) => {
+            console.error(error);
+            });
+    },
     chooseMovie(item) { //點擊電影抓此電影資訊
       console.log(item)
       this.$router.push({
@@ -163,7 +248,7 @@ export default {
           movieGenreid: item.genre_ids,
           movieId: item.id,
           movieOriginaltitle: item.original_title, 
-          movieTitle: item.original_title, 
+          movieTitle: item.title, 
           movieOverview: item.overview, 
           moviePoster: item.poster_path, 
           movieBack: item.backdrop_path, 
@@ -189,8 +274,8 @@ export default {
 </script>
 
 <template>
-  
-<h1>近期上映電影</h1>
+ 
+<h1>熱映中電影</h1>
 <div class="container mt-5">
     <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
       <div class="carousel-inner">
@@ -199,7 +284,7 @@ export default {
             <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
               <a @click="chooseMovie(item)">
                 <div class="card" style="width: 420px;">
-                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="">
+                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報">
                   <div class="card-body">
                     <p class="card-text">
                       <span>{{ "名稱：" + item.title }}</span><br>
@@ -225,7 +310,7 @@ export default {
     </div>
   </div>
 
-<h1>熱映中電影</h1>
+<h1>近期上映電影</h1>
 <div class="container mt-5">
     <div id="carouselExample1" class="carousel slide" data-bs-ride="carousel">
       <div class="carousel-inner">
@@ -234,7 +319,7 @@ export default {
             <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
               <a @click="chooseMovie(item)">
                 <div class="card" style="width: 420px;">
-                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="">
+                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報">
                   <div class="card-body">
                     <p class="card-text">
                       <span>{{ "名稱：" + item.title }}</span><br>
