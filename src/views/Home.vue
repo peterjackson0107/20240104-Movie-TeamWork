@@ -56,16 +56,30 @@ export default {
           const data = await response.json();
           const moviesOnPage = data.results.filter((movie) => {
             const releaseDate = new Date(movie.release_date);
-            return releaseDate >= twoMonth && releaseDate <= nowDate;
+            // 檢查發佈日期是否在指定範圍內
+            if (!(releaseDate >= twoMonth && releaseDate <= nowDate)) {
+              return false;
+            }
+            // 檢查poster_path是否存在
+            if (!movie.poster_path) {
+              return false;
+            }
+            return true;
           });
-          playingMovies = playingMovies.concat(moviesOnPage);
-          if (page < data.total_pages) {
-            page++;
-          } else {
-            break;
+          // 移除已存在的電影，避免重複
+          for (const movie of moviesOnPage) {
+              if (!playingMovies.some((existingMovie) => existingMovie.title === movie.title)) {
+                  playingMovies.push(movie);
+              }
+          }
+            if (page < data.total_pages) {
+                page++;
+        } else {
+        break;
           }
         }
-        const playMovies = playingMovies.slice(0, count);
+        // 過濾掉沒有 poster_path 的電影
+        const playMovies = playingMovies.filter((movie) => movie.poster_path).slice(0, count).sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
         this.objPlayMovies = playMovies;
         console.log('上映中 PlayMovies:', this.objPlayMovies);
       } catch (error) {
@@ -101,20 +115,33 @@ export default {
           const data = await response.json();
           const moviesOnPage = data.results.filter((movie) => {
             const releaseDate = new Date(movie.release_date);
-            return releaseDate >= nowDate && releaseDate <= oneMonth;
-          });
-          comingMovies = comingMovies.concat(moviesOnPage);
-          if (page < data.total_pages) {
-            page++;
-          } else {
-            break;
+             // 檢查發佈日期是否在指定範圍內
+            if (!(releaseDate >= nowDate && releaseDate <= oneMonth)) {
+                return false;
+            }
+            // 檢查poster_path是否存在
+            if (!movie.poster_path) {
+                return false;
+            }
+            return true;
+        });
+        // 移除已存在的電影，避免重複
+        for (const movie of moviesOnPage) {
+            if (!comingMovies.some((existingMovie) => existingMovie.title === movie.title)) {
+              comingMovies.push(movie);
+            }
           }
-        }
-        // 截取前 count 筆資料
-        const comeMovies = comingMovies.slice(0, count);
-        this.objComeMovies = comeMovies;
-        console.log('即將上映 ComeMovies:', this.objComeMovies);
-      } catch (error) {
+          if (page < data.total_pages) {
+              page++;
+          } else {
+          break;
+            }
+          }
+          // 截取前 count 筆資料
+          const comeMovies = comingMovies.filter((movie) => movie.poster_path).slice(0, count).sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
+          this.objComeMovies = comeMovies;
+          console.log('即將上映 ComeMovies:', this.objComeMovies);
+        } catch (error) {
         console.error(error);
       }
     },
@@ -139,8 +166,19 @@ export default {
             throw new Error("Network response was not ok");
           }
           const data = await response.json();
-          const moviesOnPage = data.results
-          popularMovies = popularMovies.concat(moviesOnPage);
+          const moviesOnPage = data.results.filter((movie) => {
+            // 檢查poster_path是否存在
+            // if (!movie.poster_path) {
+            //     return false;
+            // }
+            // return true;
+        });
+        // 移除已存在的電影，避免重複
+        for (const movie of moviesOnPage) {
+            if (!popularMovies.some((existingMovie) => existingMovie.title === movie.title)) {
+              popularMovies.push(movie);
+            }
+          }
           if (page < data.total_pages) {
             page++;
           } else {
@@ -148,7 +186,8 @@ export default {
           }
         }
         // 截取前 count 筆資料
-        const popularMovie = popularMovies.slice(0, count);
+        // const popularMovie = popularMovies.filter((movie) => movie.poster_path).slice(0, count);
+        const popularMovie = popularMovies.filter.slice(0, count);
         this.objPopularMovies = popularMovie;
         console.log('最受歡迎 popularMovies:', this.objPopularMovies);
       } catch (error) {
@@ -243,7 +282,7 @@ export default {
     chooseMovie(item) { //點擊電影抓此電影資訊
       console.log(item)
       this.$router.push({
-        name: 'moviecomment', // 新的路由
+        name: 'MovieComment', // 新的路由
         query: { 
           movieGenreid: item.genre_ids,
           movieId: item.id,
@@ -274,8 +313,8 @@ export default {
 </script>
 
 <template>
- 
-<h1>熱映中電影</h1>
+  
+<h1>上映中電影</h1>
 <div class="container mt-5">
     <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
       <div class="carousel-inner">
