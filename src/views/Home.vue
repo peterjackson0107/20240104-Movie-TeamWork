@@ -282,7 +282,7 @@ export default {
     chooseMovie(item) { //點擊電影抓此電影資訊
       console.log(item)
       this.$router.push({
-        name: 'MovieComment', // 新的路由
+        name: 'moviecomment', // 新的路由
         query: { 
           movieGenreid: item.genre_ids,
           movieId: item.id,
@@ -390,7 +390,7 @@ export default {
 
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 span, button, p, label, select {
   font-family: "Montserrat", sans-serif, sans-serif, "M PLUS 1";
   color: #557;
