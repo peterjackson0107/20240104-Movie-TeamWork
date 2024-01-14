@@ -5,7 +5,9 @@ export default {
       objPlayMovies: [],
       objComeMovies: [],
       objPopularMovies: [],
+      objtype: [],
       itemsPerSlide: 3, // 每頁顯示的輪播項目數量
+      typePerRow: 7,
       currentSlide: 0,
     };
   },
@@ -24,7 +26,20 @@ export default {
       }
       return cutArray;
     },
-    
+    popularPerPage() {
+      let cutArray = [];
+      for (let i = 0; i < this.objPopularMovies.length; i+=this.itemsPerSlide) {
+        cutArray.push(this.objPopularMovies.slice(i, i + this.itemsPerSlide));
+      }
+      return cutArray;
+    },
+    typePerPage() {
+      let cutArray = [];
+      for (let i = 0; i < this.objtype.length; i+=this.itemsPerSlide) {
+        cutArray.push(this.objtype.slice(i, i + this.itemsPerSlide));
+      }
+      return cutArray;
+    },
 },
   methods: {
     async getPlayMovie() { //上映中
@@ -155,12 +170,12 @@ export default {
       };
 
       let page = 1;
-      let count = 30; //要抓的電影數
+      let count = 100; //要抓的電影數
       let popularMovies = [];
 
       try {
         while (popularMovies.length < count) {
-          const api = `https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&page=${page}&sort_by=revenue.desc`;
+          const api = `https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=zh-TW&&page=${page}&sort_by=revenue.desc`;
           const response = await fetch(api, options);
           if (!response.ok) {
             throw new Error("Network response was not ok");
@@ -168,10 +183,10 @@ export default {
           const data = await response.json();
           const moviesOnPage = data.results.filter((movie) => {
             // 檢查poster_path是否存在
-            // if (!movie.poster_path) {
-            //     return false;
-            // }
-            // return true;
+            if (!movie.poster_path) {
+                return false;
+            }
+            return true;
         });
         // 移除已存在的電影，避免重複
         for (const movie of moviesOnPage) {
@@ -186,8 +201,7 @@ export default {
           }
         }
         // 截取前 count 筆資料
-        // const popularMovie = popularMovies.filter((movie) => movie.poster_path).slice(0, count);
-        const popularMovie = popularMovies.filter.slice(0, count);
+        const popularMovie = popularMovies.filter((movie) => movie.poster_path).slice(0, count).sort((a, b) => b.vote_average - a.vote_average);
         this.objPopularMovies = popularMovie;
         console.log('最受歡迎 popularMovies:', this.objPopularMovies);
       } catch (error) {
@@ -279,10 +293,27 @@ export default {
             console.error(error);
             });
     },
-    chooseMovie(item) { //點擊電影抓此電影資訊
+    getMovieType() { //電影類型
+        const options = {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww'
+        }
+      };
+      fetch('https://api.themoviedb.org/3/genre/movie/list?language=en', options)
+        .then((response) => response.json())
+        .then((response) => {
+          this.type = response.genres,
+          console.log(this.type)
+          this.objtype = this.type
+        })
+        .catch(err => console.error(err));
+    },
+    chooseMovie(item) { //點電影飛去新路由
       console.log(item)
       this.$router.push({
-        name: 'moviecomment', // 新的路由
+        name: 'moviecomment',
         query: { 
           movieGenreid: item.genre_ids,
           movieId: item.id,
@@ -302,12 +333,12 @@ export default {
     prevSlide() {
       this.currentSlide = (this.currentSlide - 1 + this.itemscutArray.length) % this.itemscutArray.length;
     },
-  
   },
   async mounted() {
     await this.getPlayMovie();
     await this.getComeMovie();
     await this.getPopularMovie();
+    await this.getMovieType();
   },
 };
 </script>
@@ -338,11 +369,11 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev" @click="prevSlide" style="left: -150px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev" @click="prevSlide" style="left: -150px; top: 250px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next" @click="nextSlide" style="right: -150px;">
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next" @click="nextSlide" style="right: -150px; top: 250px;">
         <span class="carousel-control-next-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-right" style="font-size: 50px"></i></span>
         <span class="visually-hidden">Next</span>
       </button>
@@ -373,21 +404,58 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample1" data-bs-slide="prev" @click="prevSlide" style="left: -150px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample1" data-bs-slide="prev" @click="prevSlide" style="left: -150px; top: 250px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample1" data-bs-slide="next" @click="nextSlide" style="right: -150px;">
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample1" data-bs-slide="next" @click="nextSlide" style="right: -150px; top: 250px;">
         <span class="carousel-control-next-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-right" style="font-size: 50px"></i></span>
         <span class="visually-hidden">Next</span>
       </button>
     </div>
   </div>
 
-<h1>為你推薦</h1><br>
+<h1>為你推薦</h1>
+<div class="container mt-5">
+    <div id="carouselExample2" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <div v-for="(itemsChunk, index) in popularPerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
+          <div class="row">
+            <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
+              <a @click="chooseMovie(item)">
+                <div class="card" style="width: 420px;">
+                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報">
+                  <div class="card-body">
+                    <p class="card-text">
+                      <span>{{ "名稱：" + item.title }}</span><br>
+                      <span>{{ "上映日期：" + item.release_date }}</span>
+                    </p>
+                  </div>
+                </div>
+              </a>
+              <div class="carousel-caption d-none d-md-block">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample2" data-bs-slide="prev" @click="prevSlide" style="left: -150px; top: 250px;">
+        <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample2" data-bs-slide="next" @click="nextSlide" style="right: -150px; top: 250px;">
+        <span class="carousel-control-next-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-right" style="font-size: 50px"></i></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  </div>
+
 <h1>分類選擇</h1>
-
-
+<div v-for="(item, index) in this.objtype" :key="index">
+<button type="button" v-for="(name, index) in this.objtype.slice(index * typePerRow, (index + 1) * typePerRow)" :key="index" >
+  {{ item.name }}
+</button>
+</div>
 </template>
 
 <style scoped lang="scss">
@@ -395,5 +463,11 @@ span, button, p, label, select {
   font-family: "Montserrat", sans-serif, sans-serif, "M PLUS 1";
   color: #557;
   font-size: 18px;
+}
+
+button{
+  width: 150px;
+  height: 100px;
+  margin: 10px;
 }
 </style>
