@@ -7,6 +7,7 @@ export default {
       objPopularMovies: [],
       objtype: [],
       itemsPerSlide: 3, // 每頁顯示的輪播項目數量
+      itemTypePerSize: 5,
       typePerRow: 7,
       currentSlide: 0,
     };
@@ -34,10 +35,12 @@ export default {
       return cutArray;
     },
     typePerPage() {
-      let cutArray = [];
-      for (let i = 0; i < this.objtype.length; i+=this.itemsPerSlide) {
-        cutArray.push(this.objtype.slice(i, i + this.itemsPerSlide));
+      const cutArray = [];
+
+      for (let i = 0; i < this.objtype.length; i += this.itemTypePerSize) {
+        cutArray.push(this.objtype.slice(i, i + this.itemTypePerSize));
       }
+
       return cutArray;
     },
 },
@@ -338,7 +341,7 @@ export default {
     await this.getPlayMovie();
     await this.getComeMovie();
     await this.getPopularMovie();
-    await this.getMovieType();
+    this.getMovieType();
   },
 };
 </script>
@@ -369,7 +372,7 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev" @click="prevSlide" style="left: -150px; top: 250px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev" @click="prevSlide" style="left: -160px; top: 250px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
@@ -404,7 +407,7 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample1" data-bs-slide="prev" @click="prevSlide" style="left: -150px; top: 250px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample1" data-bs-slide="prev" @click="prevSlide" style="left: -160px; top: 250px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
@@ -439,7 +442,7 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample2" data-bs-slide="prev" @click="prevSlide" style="left: -150px; top: 250px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample2" data-bs-slide="prev" @click="prevSlide" style="left: -160px; top: 250px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
@@ -451,11 +454,11 @@ export default {
   </div>
 
 <h1>分類選擇</h1>
-<div v-for="(item, index) in this.objtype" :key="index">
-<button type="button" v-for="(name, index) in this.objtype.slice(index * typePerRow, (index + 1) * typePerRow)" :key="index" >
-  {{ item.name }}
-</button>
-</div>
+<div v-for="(item, index) in typePerPage" :key="index">
+      <button type="button" v-for="(item, index1) in item" :key="index1">
+        {{ item.name }}
+      </button>
+    </div>
 </template>
 
 <style scoped lang="scss">
@@ -466,8 +469,8 @@ span, button, p, label, select {
 }
 
 button{
-  width: 150px;
+  width: 200px;
   height: 100px;
-  margin: 10px;
+  margin: 20px;
 }
 </style>
