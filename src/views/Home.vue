@@ -40,7 +40,7 @@ export default {
       for (let i = 0; i < this.objtype.length; i += this.itemTypePerSize) {
         cutArray.push(this.objtype.slice(i, i + this.itemTypePerSize));
       }
-
+      console.log(cutArray)
       return cutArray;
     },
 },
@@ -372,11 +372,11 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev" @click="prevSlide" style="left: -160px; top: 250px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev" @click="prevSlide" style="left: -160px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next" @click="nextSlide" style="right: -150px; top: 250px;">
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next" @click="nextSlide" style="right: -150px;">
         <span class="carousel-control-next-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-right" style="font-size: 50px"></i></span>
         <span class="visually-hidden">Next</span>
       </button>
@@ -407,11 +407,11 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample1" data-bs-slide="prev" @click="prevSlide" style="left: -160px; top: 250px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample1" data-bs-slide="prev" @click="prevSlide" style="left: -160px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample1" data-bs-slide="next" @click="nextSlide" style="right: -150px; top: 250px;">
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample1" data-bs-slide="next" @click="nextSlide" style="right: -150px;">
         <span class="carousel-control-next-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-right" style="font-size: 50px"></i></span>
         <span class="visually-hidden">Next</span>
       </button>
@@ -442,11 +442,11 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample2" data-bs-slide="prev" @click="prevSlide" style="left: -160px; top: 250px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample2" data-bs-slide="prev" @click="prevSlide" style="left: -160px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample2" data-bs-slide="next" @click="nextSlide" style="right: -150px; top: 250px;">
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample2" data-bs-slide="next" @click="nextSlide" style="right: -150px;">
         <span class="carousel-control-next-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-right" style="font-size: 50px"></i></span>
         <span class="visually-hidden">Next</span>
       </button>
@@ -454,11 +454,11 @@ export default {
   </div>
 
 <h1>分類選擇</h1>
-<div v-for="(item, index) in typePerPage" :key="index">
-      <button type="button" v-for="(item, index1) in item" :key="index1">
-        {{ item.name }}
-      </button>
-    </div>
+<div class="movieType">
+    <select>
+      <option  v-for="(item, index) in this.objtype" :key="index" value="">{{ item.name }}</option>
+    </select>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -468,9 +468,15 @@ span, button, p, label, select {
   font-size: 18px;
 }
 
-button{
-  width: 200px;
-  height: 100px;
-  margin: 20px;
+.movieType{
+  button{
+    width: 200px;
+    height: 100px;
+    margin: 20px;
+
+    &:hover{
+      background-color: gray;
+    }
+  }
 }
 </style>

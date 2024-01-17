@@ -10,15 +10,10 @@ export default {
       type: [],
       movieType: [],
       //評論區相關
-      comments: [
-        //先放假資料
-        { id: 1, text: "good!!!", likes: 100, dislikes: 0, timestamp: Date.now() - 1000 * 60 * 5, replies: [], editing: false, },
-        { id: 2, text: "what???", likes: 50, dislikes: 20, timestamp: Date.now() - 1000 * 86400 * 70, replies: [], editing: false, },
-        { id: 3, text: "bad...", likes: 0, dislikes: 100, timestamp: Date.now() - 1000 * 86400 * 700, replies: [], editing: false, },
-        // ...其他假留言...
-      ],
-      name: "John123456",
+      name: "snsdarea1209",
       commentText: "",
+      comments: [],
+      vueComment:[], //抓回來的comments的js格式的時間
       sortOrder: "sort",
       baoleiButton: false, //暴雷按鈕
       blurredArea: true, //模糊區域
@@ -30,9 +25,9 @@ export default {
       const sorted = this.comments.slice();
       switch (this.sortOrder) {
         case "latest":
-          return sorted.sort((a, b) => b.timestamp - a.timestamp);
+          return sorted.sort((a, b) => b.commentTime - a.commentTime);
         case "likes":
-          return sorted.sort((a, b) => b.likes - a.likes);
+          return sorted.sort((a, b) => b.favorite - a.favorite);
         default:
           return sorted.sort();
       }
@@ -142,28 +137,27 @@ export default {
         .catch(err => console.error(err));
     },
     //評論區相關
-    toggleBaolei() {
-      //暴雷按鈕
+    toggleBaolei() { //暴雷按鈕
       this.baoleiButton = !this.baoleiButton;
     },
-    addComment() { //新增留言
-      if (this.commentText.trim() !== "") {
-        this.comments.push({
-          id: this.comments.length + 1,
-          text: this.commentText,
-          likes: 0,
-          dislikes: 0,
-          timestamp: Date.now(),
-          replying: false,
-          replyText: "",
-          replies: [],
-        });
-        this.commentText = "";
-      }
-    },
+    // addComment() { //新增留言
+    //   if (this.commentText.trim() !== "") {
+    //     this.comments.push({
+    //       id: this.comments.length + 1,
+    //       text: this.commentText,
+    //       likes: 0,
+    //       dislikes: 0,
+    //       timestamp: Date.now(),
+    //       replying: false,
+    //       replyText: "",
+    //       replies: [],
+    //     });
+    //     this.commentText = "";
+    //   }
+    // },
     commentTimeDif(timestamp) { //留言時間到現在時間差
-      const now = Date.now();
-      const timeDif = now - timestamp;
+      const now = Date.now(); //毫秒數
+      const timeDif = now - Date.parse(timestamp); //抓過來為2024/01/16 10:52轉毫秒數
       const seconds = Math.floor(timeDif / 1000);
       if (seconds < 60) {
         return `${seconds}秒前`;
@@ -223,7 +217,7 @@ export default {
     },
     addReply(comment) { //回覆留言
       if (comment.replyText.trim() !== "") {
-        comment.replies.push({
+        this.comment.replies.push({
           id: comment.replies.length + 1,
           text: comment.replyText,
           timestamp: Date.now(),
@@ -241,6 +235,67 @@ export default {
     resetBlur() { //暴雷背景模糊
       this.blurredArea = false;
     },
+    // 後端api
+    commentCreate() { //留言
+      fetch('http://localhost:8080/movie/comment/create', {
+        method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+        headers: {
+          'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            movieID:this.movieInfo.movieId,
+            commentText:this.commentText,
+            movie:this.movieInfo.movieTitle,
+            account: this.name,
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            // 處理返回的數據
+            console.log(data);
+            if (this.commentText.trim() !== "" && data.code===200) {
+              this.comments.push({
+                id: this.comments.length + 1,
+                text: this.commentText,
+                likes: 0,
+                dislikes: 0,
+                timestamp: Date.now(),
+                replying: false,
+                replyText: "",
+                replies: [],
+              });
+              this.commentText = "";
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+    },
+    commentSearch() { //抓此電影留言
+      fetch('http://localhost:8080/movie/comment/search', {
+        method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+        headers: {
+          'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            movieID:this.movieInfo.movieId,
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            // 處理返回的數據
+            console.log(data);
+            this.comments = data.commentList;
+            for(let i=0;i<this.comments.lengh;i++){
+              const replies = []
+              this.comments[i].add(replies)
+            }
+            console.log(this.comments);
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+    },
   },
   async mounted() {
     this.movieInfo = this.$route.query;
@@ -249,11 +304,25 @@ export default {
     await this.getTrailer();
     await this.initYouTubePlayer();
     await this.getMovieType();
+    setTimeout(() => {
+      $(".loader").hide();
+    }, 500);
+    await this.commentSearch();
   },
 };
 </script>
 
 <template>
+  <!-- 讀取資料過場 -->
+  <!-- <div class="loader">
+    <div class="loadingio-spinner-rolling-3hvvs6i9c3b">
+      <div class="ldio-b9el9z8mymt">
+        <h1>請稍後......</h1>
+        <div></div>
+      </div>
+    </div>
+  </div> -->
+
   <div class="body">
     <!-- 電影資料 -->
     <div class="header">
@@ -265,26 +334,34 @@ export default {
         <div class="movieDataRight">
           <h1>{{ this.movieInfo.movieTitle }}</h1>
           <h6>{{ this.movieInfo.movieOriginaltitle }}</h6>
-          <h2>上映日期：{{ this.movieInfo.movieReleasedate }}</h2>
+          <h2 class="textHeader">上映日期：{{ this.movieInfo.movieReleasedate }}</h2>
           <hr />
           <h2>Movie Info</h2>
           <div class="movieDataRight1">
-          <div class="movieDataRight11">
-            <h3>類型：</h3>
-            <h3>導演：</h3>
-            <h3>演員：</h3>
-            <h3>評分：</h3>
-            <h3>簡介：</h3>
+            <div class="movieDataRight22">
+              <div class="type">
+                <h3 class="textHeader">類型：</h3>
+                <span class="textall" style="line-height: 50px;" v-for="(item,index) in this.movieType" :key="index">{{ item }}<span v-if="index < this.movieType.length - 1" class="textall" style="font-size: 1em;">、</span></span><br>
+              </div>
+              <div class="director">
+                <h3 class="textHeader">導演：</h3>
+                <span class="textall" style="line-height: 50px;" v-for="(item, index) in this.directors" :key="index">{{ item.original_name }}<span v-if="index < this.directors.length - 1">,</span></span><br>
+              </div>
+              <div class="casts">
+                <h3 class="textHeader" style="width: 105px; height: 50px;">演員：</h3>
+                <div style="width: 90%;display: flex;"><p class="textall" style="line-height: 50px;" v-for="(item, index) in this.casts" :key="index">{{ item.original_name }}<span v-if="index < this.casts.length - 1" class="textall" style="font-size: 1em;">、</span></p><br></div>
+              </div>
+              <div class="voteAvg">
+                <h3 class="textHeader">評分：</h3>
+                <h2 class="textall" style="line-height: 50px;">{{ this.movieInfo.movieVoteavg }}</h2>
+              </div>
+              <div class="movieOverview">
+                <h3 class="textHeader" style="width: 105px; height: 50px;">簡介：</h3>
+                <p class="textall" v-if="this.movieInfo.movieOverview" style="width: 90%;line-height: 50px;">{{ this.movieInfo.movieOverview }}</p>
+                <p class="textall" v-else>此電影無簡介</p>
+              </div>
+            </div>
           </div>
-          <div class="movieDataRight22">
-            <span style="line-height: 50px;" v-for="(item,index) in this.movieType" :key="index">{{ item }}<span v-if="index < this.movieType.length - 1">,</span></span><br>
-            <span style="line-height: 65px;" v-for="(item, index) in this.directors" :key="index">{{ item.original_name }}<span v-if="index < this.directors.length - 1">,</span></span><br>
-            <span style="line-height: 50px;" v-for="(item, index) in this.casts" :key="index">{{ item.original_name }}<span v-if="index < this.casts.length - 1">,</span></span><br>
-            <h2 style="line-height: 65px;">{{ this.movieInfo.movieVoteavg }}</h2>
-            <h4 style="line-height: 40px;" v-if="this.movieInfo.movieOverview">{{ this.movieInfo.movieOverview }}</h4>
-            <h4 style="line-height: 40px;" v-else>此電影無簡介</h4>
-          </div>
-        </div>
         </div>
       </div>
     </div>
@@ -322,43 +399,43 @@ export default {
               </select>
             </div>
             <!-- 新增留言 -->
-            <form @submit.prevent="addComment" class="mt-4">
+            <form class="mt-4" @click.prevent="">
               <div class="mb-3">
                 <label for="commentInput" class="form-label"><span>新增留言</span></label>
-                <textarea rows="1" v-model="commentText" class="form-control" id="commentInput" required style=" resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
+                <textarea rows="1" v-model="commentText" class="form-control" id="commentInput" required style="outline:none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
               </div>
-              <button type="submit" class="btn btn-outline-dark">留言</button>
+              <button type="submit" class="btn btn-outline-dark" @click="commentCreate">留言</button>
             </form>
             <!-- 遍歷並顯示留言 -->
-            <div v-for="comment in sortedComments" :key="comment.id" class="card mb-2">
+            <div v-for="comment in sortedComments" :key="comment.number" class="card mb-2">
               <!-- 留言內容 -->
               <div class="card-body">
-                <span>{{ "@" + this.name }}</span>
-                <small class="text-muted">{{ commentTimeDif(comment.timestamp) }}</small><br />
-                <span>{{ comment.text }}</span>
-                <button @click="editComment(comment)" class="btn btn-link" style="text-decoration: none">編輯</button>
-                <button @click="deleteComment(comment)" class="btn btn-link" style="text-decoration: none">刪除</button><br />
-                <button @click="likeButton(comment)" class="btn btn-outline-primary" style="border: 0">
-                  <i class="fa-regular fa-thumbs-up"></i>{{ comment.likes }}
+                <span>{{ "@"+comment.account }}</span>
+                <small class="text-muted">{{ this.commentTimeDif(comment.commentTime) }}</small>
+                <button @click="editComment(item)" class="btn btn-link" style="margin-left: 10px; text-decoration: none">編輯</button>
+                <button @click="deleteComment(item)" class="btn btn-link" style="text-decoration: none">刪除</button><br />
+                <span>{{ comment.commentText }}</span><br>
+                <button @click="likeButton(item)" class="btn btn-outline-primary" style="border: 0">
+                  <i class="fa-regular fa-thumbs-up"></i>{{ comment.favorite }}
                 </button>
-                <button @click="dislikeButton(comment)" class="btn btn-outline-danger" style="border: 0"><i class="fa-regular fa-thumbs-down"></i>{{ comment.dislikes }}</button>
+                <button @click="dislikeButton(comment)" class="btn btn-outline-danger" style="border: 0"><i class="fa-regular fa-thumbs-down"></i>{{ comment.dislike }}</button>
                 <button @click="replyComment(comment)" class="btn btn-link" style="text-decoration: none; margin-left: 5px">回覆</button>
                 <button v-if="comment.editing" @click="saveEdit(comment)" class="btn btn-link" style="text-decoration: none">儲存</button>
 
                 <!-- 顯示回覆的區域 -->
-                <div v-if="comment.replies.length > 0" class="mt-2">
-                  <h6>回覆:</h6>
+                <!-- <div v-if="comment.replies.length > 0" class="mt-2">
+                  <h6>回覆:</h6> -->
                   <!-- 遍歷並顯示回復 -->
-                  <div v-for="reply in comment.replies" :key="reply.id" class="card mb-2">
+                  <!-- <div v-for="reply in comment.replies" :key="reply.id" class="card mb-2"> -->
                     <!-- 回覆內容 -->
-                    <div class="card-body">
+                    <!-- <div class="card-body">
                       <span>{{ "@" + this.name }}</span>
                       <small class="text-muted">{{ commentTime(reply.timestamp) }}</small><br />
                       <span>{{ reply.text }}</span>
                       <button @click="deleteReply(comment, reply)" class="btn btn-link" style="text-decoration: none">刪除</button>
                     </div>
                   </div>
-                </div>
+                </div> -->
                 <!-- 回覆留言的表單 -->
                 <form v-if="comment.replying" @submit.prevent="addReply(comment)" class="mt-2">
                   <div class="mb-3">
@@ -377,6 +454,67 @@ export default {
 </template>
 
 <style scoped lang="scss">
+.loader {
+  //又報錯
+  background: linear-gradient(90deg, #b3fffd 0, #e3e6ff 50%, #fde5f5 100%);
+  background-size: 200% 200%;
+  background-color: white;
+  // opacity: 0.8;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  z-index: 100000;
+  background-position: center;
+  background-repeat: no-repeat;
+  // background-size: 65vw 70vh;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  animation: bgGrade 10s ease infinite;
+}
+.ldio-b9el9z8mymt div {
+  //轉動齒輪
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border: 20px solid #af3fc8;
+  border-top-color: transparent;
+  border-radius: 50%;
+  opacity: 0.5;
+}
+.ldio-b9el9z8mymt div {
+  animation: ldio-b9el9z8mymt 1s linear infinite;
+  top: 100px;
+  left: 100px;
+}
+.loadingio-spinner-rolling-3hvvs6i9c3b {
+  width: 200px;
+  height: 200px;
+  display: inline-block;
+  overflow: hidden;
+}
+.ldio-b9el9z8mymt {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform: translateZ(0) scale(1);
+  backface-visibility: hidden;
+  transform-origin: 0 0;
+}
+.ldio-b9el9z8mymt div {
+  box-sizing: content-box;
+}
+@keyframes ldio-b9el9z8mymt {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
 span, button, p, label, select {
   font-family: "Montserrat", sans-serif, sans-serif, "M PLUS 1";
   color: #557;
@@ -423,10 +561,6 @@ span, button {
     margin-left: auto;
   }
 
-  textarea {
-    resize: vertical;
-  }
-
   .mt-2 {
     margin-top: 10px;
   }
@@ -437,21 +571,21 @@ span, button {
 
   .header {
     width: 95vw;
-    height: 90vh;
+    height: 110vh;
     margin: 0 auto;
     padding-top: 20px;
     .movieData {
       display: flex;
       .movieDataLeft {
         width: 35%;
-        height: 90vh;
+        height: 110vh;
         text-align: end;
         align-items: end;
         margin-right: 50px;
       }
       .movieDataRight {
         width: 65%;
-        height: 90vh;
+        height: 110vh;
         text-align: start;
         align-items: start;
         .movieDataRight1{
@@ -469,6 +603,26 @@ span, button {
               height: 40vh;
               text-align: start;
               align-items: start;
+              .type{
+                display: flex;
+                margin-bottom: 10px;
+              }
+              .director{
+                display: flex;
+                margin-bottom: 10px;
+              }
+              .casts{
+                display: flex;
+                margin-bottom: 10px;
+              }
+              .voteAvg{
+                display: flex;
+                margin-bottom: 10px;
+              }
+              .movieOverview{
+                display: flex;
+                margin-bottom: 10px;
+              }
           }
         }
       }
@@ -484,5 +638,26 @@ span, button {
     height: 30vh;
     margin: 0 auto;
   }
+}
+.textTilte{
+  font-family:'jf-openhuninn-2.0';
+  font-size: 4em;
+  margin: 0 0 20px 0;
+}
+.text{
+  font-family:'jf-openhuninn-2.0';
+  font-size: 2em;
+  width: 80%;
+  margin: 0 auto 0 auto;
+}
+.textall{
+  font-family:'jf-openhuninn-2.0';
+  font-size: 1.5em;
+  margin: 0;
+}
+.textHeader{
+  font-family:'jf-openhuninn-2.0';
+  font-size: 2em;
+  margin: 0;
 }
 </style>
