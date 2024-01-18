@@ -1,6 +1,4 @@
 <script>
-  import { Swiper, SwiperSlide } from 'swiper/vue';
-  import 'swiper/css';
 export default {
   data() {
     return {
@@ -17,28 +15,13 @@ export default {
       type: [],
       movieType: [],
       //評論區相關
-      mymovie:[
-        { title:"0",imgUrl:"/r5kvFAqfyDBFZzDY5XTJYxDidsZ.jpg"},
-        { title:"1",imgUrl:"/pHUCVSUCma3LHmb0WUBei1QGUtD.jpg"},
-        { title:"2",imgUrl:"/eHBBg8juDeKWj34b5oKru5JkNqt.jpg"},
-        { title:"3",imgUrl:"/eHBBg8juDeKWj34b5oKru5JkNqt.jpg"},
-        { title:"4",imgUrl:"/r5kvFAqfyDBFZzDY5XTJYxDidsZ.jpg"},
-        { title:"5",imgUrl:"/pHUCVSUCma3LHmb0WUBei1QGUtD.jpg"},
-        { title:"6",imgUrl:"/eHBBg8juDeKWj34b5oKru5JkNqt.jpg"},
-        { title:"7",imgUrl:"/eHBBg8juDeKWj34b5oKru5JkNqt.jpg"},
-        { title:"8",imgUrl:"/r5kvFAqfyDBFZzDY5XTJYxDidsZ.jpg"},
-        { title:"9",imgUrl:"/pHUCVSUCma3LHmb0WUBei1QGUtD.jpg"},
-        { title:"10",imgUrl:"/eHBBg8juDeKWj34b5oKru5JkNqt.jpg"},
-        { title:"11",imgUrl:"/eHBBg8juDeKWj34b5oKru5JkNqt.jpg"},
-        { title:"12",imgUrl:"/r5kvFAqfyDBFZzDY5XTJYxDidsZ.jpg"},
-        { title:"13",imgUrl:"/pHUCVSUCma3LHmb0WUBei1QGUtD.jpg"},
-        { title:"14",imgUrl:"/eHBBg8juDeKWj34b5oKru5JkNqt.jpg"},
-        { title:"15",imgUrl:"/eHBBg8juDeKWj34b5oKru5JkNqt.jpg"},
+      comments: [
+        //先放假資料
+        { id: 1, text: "good!!!", likes: 7, dislikes: 0, timestamp: Date.now() - 1000 * 60 * 5, replies: [], editing: false, },
+        { id: 2, text: "what???", likes: 3, dislikes: 9, timestamp: Date.now() - 1000 * 86400 * 70, replies: [], editing: false, },
+        { id: 3, text: "bad...", likes: 1, dislikes: 20, timestamp: Date.now() - 1000 * 86400 * 700, replies: [], editing: false, },
+        // ...其他假留言...
       ],
-      swiperdata:[],
-      swiperdata2:[],
-      swiperdata3:[],
-      swiperdata4:[],
       name: "John123456",
       commentText: "",
       sortOrder: "sort",
@@ -47,37 +30,19 @@ export default {
     };
   },
   computed: {
-    scheduleListThree: function () {
-    let index = 0;
-    let count = 3;
-    let arrThree = [];
-    let data = this.mymovie;
-    for (let i = 0; i < this.mymovie.length; i++) {
-      index = parseInt(i / count);
-      if (arrThree.length <= index) {
-        arrThree.push([]);
-    }
-    arrThree[index].push(data[i])
-    }
-    return arrThree
-  }
+    sortedComments() {
+      //篩選留言
+      const sorted = this.comments.slice();
+      switch (this.sortOrder) {
+        case "latest":
+          return sorted.sort((a, b) => b.timestamp - a.timestamp);
+        case "likes":
+          return sorted.sort((a, b) => b.likes - a.likes);
+        default:
+          return sorted.sort();
+      }
+    },
   },
-  components: {
-      Swiper,
-      SwiperSlide,
-    },
-    setup() {
-      const onSwiper = (swiper) => {
-        console.log(swiper);
-      };
-      const onSlideChange = () => {
-        console.log('slide change');
-      };
-      return {
-        onSwiper,
-        onSlideChange,
-      };
-    },
   methods: {
     initYouTubePlayer() { //影片嵌入相關
       if (window.YT && window.YT.Player) {
@@ -181,13 +146,6 @@ export default {
         })
         .catch(err => console.error(err));
     },
-    splitMovies() {
-      const pageSize = 9;
-      this.pages = [];
-      for (let i = 0; i < this.mymovie.length; i += pageSize) {
-        this.pages.push(this.mymovie.slice(i, i + pageSize));
-      }
-    },
   },
   async mounted() {
     // this.movieInfo = this.$route.query;
@@ -200,22 +158,6 @@ export default {
     await this.initYouTubePlayer();
     await this.getMovieType();
     
-        this.splitMovies();
-    this.$nextTick(() => {
-          var swiper = new Swiper(this.$refs.mySwiper, {
-            slidesPerView: 3,
-            slidesPerColumn: 3,
-            spaceBetween:10,
-            autoplay: {
-              delay: 3000,
-              disableOnInteraction: false,
-              stopOnLastSlide: false,
-            },
-            loop: false,
-            observer: true,
-            observeParents: true,
-          });
-        })
   },
 };
 </script>
@@ -301,18 +243,6 @@ export default {
       是裝飾自己房間的牆壁一樣，一頁可以放滿九張海報，
       電影清單裡面的資料一樣會影響到＂為你推薦＂功能）
   </p>
-    <div class="footer" ref="scheduleSwipers">
-      <swiper :options="swiperOption" ref="mySwiper">
-        <swiper-slide v-for="(page, index) in pages" :key="index">
-          <div class="grid-container">
-            <div class="grid-item" v-for="(movie, i) in page" :key="i">
-              <img :src="'https://image.tmdb.org/t/p/w500' + movie.imgUrl" alt="">
-              <div class="caption">{{ movie.title }}</div>
-            </div>
-          </div>
-        </swiper-slide>
-      </swiper>
-    </div>
   </div>
 </template>
 
@@ -506,9 +436,7 @@ span, button {
     margin: 0 auto;
   }
   .footer{
-    width: 95vw;
-    height: 60vh;
-    margin: 0 auto;
+
   }
 }
 
@@ -532,15 +460,5 @@ span, button {
   font-family:'jf-openhuninn-2.0';
   font-size: 2em;
   margin: 0;
-}
-
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 10px;
-}
-
-.grid-item {
-  /* Add your custom styles for each grid item here */
 }
 </style>

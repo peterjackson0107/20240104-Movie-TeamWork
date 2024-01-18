@@ -1,4 +1,6 @@
 <script>
+import { mapState,mapActions } from 'pinia';
+import auth from '../store/auth';
 export default {
   data() {
     return {
@@ -10,16 +12,19 @@ export default {
       type: [],
       movieType: [],
       //評論區相關
-      name: "snsdarea1209",
+      baoleiButton: false, // 暴雷按鈕
+      blurredArea: true, // 模糊區域
+      name: "snsdarea1209", // 帳號
       commentText: "",
       comments: [],
-      vueComment:[], //抓回來的comments的js格式的時間
+      commentReplies: [],  // 留言資料
+      comment_index: null,
+      replyText: "",
       sortOrder: "sort",
-      baoleiButton: false, //暴雷按鈕
-      blurredArea: true, //模糊區域
     };
   },
   computed: {
+    ...mapState(auth,["getAuth","getuser"]),
     sortedComments() {
       //篩選留言
       const sorted = this.comments.slice();
@@ -34,11 +39,10 @@ export default {
     },
   },
   methods: {
-    initYouTubePlayer() { //影片嵌入相關
+    // 預告片
+    initYouTubePlayer() { // 影片嵌入相關
       if (window.YT && window.YT.Player) {
-        // 替换为你的 YouTube 视频 ID
         const videoId = this.trailerLink;
-        // 创建 YouTube 播放器
         new window.YT.Player(this.$refs.youtubePlayer, {
           height: "630",
           width: "1080",
@@ -51,7 +55,8 @@ export default {
         console.error("YouTube API not ready");
       }
     },
-    getPerson() { //電影相關 上映中 演員*5 + 導演*1
+    // 抓電影
+    getPerson() { // 電影相關 上映中 演員*5 + 導演*1
       const options = {
         method: "GET",
         headers: {
@@ -81,7 +86,7 @@ export default {
           console.error(error);
         });
     },
-    async getTrailer() { //預告片
+    async getTrailer() { // 預告片
       const options = {
         method: "GET",
         headers: {
@@ -107,7 +112,7 @@ export default {
         return null; // 或者返回其他适当的值，视情况而定
       }
     },
-    getMovieType() { //電影類型 
+    getMovieType() { // 電影類型 
         const options = {
         method: 'GET',
         headers: {
@@ -121,11 +126,11 @@ export default {
           this.type = response.genres,
           console.log(this.type)
           console.log(this.movieInfo.movieGenreid)
-          console.log(this.movieInfo.movieGenreid.length)
-          console.log(this.type.length)
-          console.log(this.movieInfo.movieGenreid[0])
-          console.log(this.type[6].id)
-          console.log(parseInt(this.movieInfo.movieGenreid[0])===this.type[6].id ? 1:2)
+          // console.log(this.movieInfo.movieGenreid.length)
+          // console.log(this.type.length)
+          // console.log(this.movieInfo.movieGenreid[0])
+          // console.log(this.type[6].id)
+          // console.log(parseInt(this.movieInfo.movieGenreid[0])===this.type[6].id ? 1:2)
           for(let i=0;i<this.movieInfo.movieGenreid.length;i++){
             for(let j=0;j<this.type.length;j++)
             if(parseInt(this.movieInfo.movieGenreid[i])===this.type[j].id){
@@ -137,25 +142,13 @@ export default {
         .catch(err => console.error(err));
     },
     //評論區相關
-    toggleBaolei() { //暴雷按鈕
+    toggleBaolei() { // 暴雷按鈕
       this.baoleiButton = !this.baoleiButton;
     },
-    // addComment() { //新增留言
-    //   if (this.commentText.trim() !== "") {
-    //     this.comments.push({
-    //       id: this.comments.length + 1,
-    //       text: this.commentText,
-    //       likes: 0,
-    //       dislikes: 0,
-    //       timestamp: Date.now(),
-    //       replying: false,
-    //       replyText: "",
-    //       replies: [],
-    //     });
-    //     this.commentText = "";
-    //   }
-    // },
-    commentTimeDif(timestamp) { //留言時間到現在時間差
+    resetBlur() { //暴雷背景模糊
+      this.blurredArea = false;
+    },
+    commentTimeDif(timestamp) { // 留言時間到現在時間差
       const now = Date.now(); //毫秒數
       const timeDif = now - Date.parse(timestamp); //抓過來為2024/01/16 10:52轉毫秒數
       const seconds = Math.floor(timeDif / 1000);
@@ -177,63 +170,10 @@ export default {
         return "1年前";
       }
     },
-    deleteComment(comment) { //刪除留言
-      const index = this.comments.indexOf(comment);
-      if (index !== -1) {
-        this.comments.splice(index, 1);
-      }
-    },
-    likeButton(comment) { //喜歡按鈕
-      comment.likes++;
-    },
-    dislikeButton(comment) { //不喜歡按鈕
-      comment.dislikes++;
-    },
-    commentTime(timestamp) { //回覆時間
-      const date = new Date(timestamp);
-      const options = {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      };
-      return new Intl.DateTimeFormat("TW", options).format(date);
-    },
-    editComment(comment) { //編輯按鈕
-      this.commentText = comment.text;
-      comment.editing = true;
-    },
-    saveEdit(comment) { //儲存編輯按鈕
-      if (this.commentText.trim() !== "") {
-        comment.text = this.commentText;
-        comment.editing = false;
-        this.commentText = "";
-      }
-    },
-    replyComment(comment) { //回覆留言
+    chooseComment(comment, index) { // 回傳點擊回覆留言的編號
+      console.log('回覆按鈕被點擊，主要留言的位置：', index);
+      this.comment_index = index;
       comment.replying = true;
-    },
-    addReply(comment) { //回覆留言
-      if (comment.replyText.trim() !== "") {
-        this.comment.replies.push({
-          id: comment.replies.length + 1,
-          text: comment.replyText,
-          timestamp: Date.now(),
-        });
-        comment.replyText = "";
-        comment.replying = false;
-      }
-    },
-    deleteReply(comment, reply) { //刪除回覆
-      const index = comment.replies.indexOf(reply);
-      if (index !== -1) {
-        comment.replies.splice(index, 1);
-      }
-    },
-    resetBlur() { //暴雷背景模糊
-      this.blurredArea = false;
     },
     // 後端api
     commentCreate() { //留言
@@ -242,36 +182,35 @@ export default {
         headers: {
           'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            movieID:this.movieInfo.movieId,
-            commentText:this.commentText,
-            movie:this.movieInfo.movieTitle,
-            account: this.name,
-            })
-          })
-          .then(response => response.json())
-          .then(data => {
-            // 處理返回的數據
-            console.log(data);
-            if (this.commentText.trim() !== "" && data.code===200) {
-              this.comments.push({
-                id: this.comments.length + 1,
-                text: this.commentText,
-                likes: 0,
-                dislikes: 0,
-                timestamp: Date.now(),
-                replying: false,
-                replyText: "",
-                replies: [],
-              });
-              this.commentText = "";
-            }
-          })
-          .catch(error => {
-            console.error('Error fetching data:', error);
-        });
+        body: JSON.stringify({
+          movieID:this.movieInfo.movieId,
+          commentText:this.commentText,
+          movie:this.movieInfo.movieTitle,
+          account: this.getuser,
+        })
+      })
+      .then(response => response.json())
+      .then(data => { // 處理返回的數據
+        console.log(data);
+        if (this.commentText.trim() !== "" && data.code===200) {
+          this.comments.push({
+            id: this.comments.length + 1,
+            text: this.commentText,
+            likes: 0,
+            dislikes: 0,
+            timestamp: Date.now(),
+            replying: false,
+            replyText: "",
+            replies: [],
+          });
+          this.commentText = "";
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
     },
-    commentSearch() { //抓此電影留言
+    commentSearch() { //資料庫抓電影所有留言
       fetch('http://localhost:8080/movie/comment/search', {
         method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
         headers: {
@@ -286,20 +225,89 @@ export default {
             // 處理返回的數據
             console.log(data);
             this.comments = data.commentList;
-            for(let i=0;i<this.comments.lengh;i++){
-              const replies = []
-              this.comments[i].add(replies)
+            console.log(this.comments);
+            for(let i=0;i<this.comments.length;i++){
+              if(this.comments[i].commentIndexIndex!=0){
+                this.commentReplies.push(this.comments[i])
+                this.comments.splice(i, 1)[0];
+              }
             }
             console.log(this.comments);
+            console.log(this.commentReplies);
           })
           .catch(error => {
             console.error('Error fetching data:', error);
         });
     },
+    commentCreateChild() { //回覆留言
+      fetch('http://localhost:8080/movie/comment/createchild', {
+        method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+        headers: {
+          'Content-Type': 'application/json'
+          },
+        body: JSON.stringify({
+          commentIndex: this.comment_index,
+          movie: this.movieInfo.movieTitle,
+          movieID: this.movieInfo.movieId,
+          commentText: this.replyText,
+          account: this.getuser,
+        })
+      })
+      .then(response => response.json())
+      .then(data => { // 處理返回的數據
+        console.log(data);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+    },
+    // 以下待解決
+    addReply(comment) {
+      if (this.replyText.trim() !== "") {
+        this.commentReplies.push({
+          id: this.movieInfo.movieId,
+          text: this.replyText,
+          timestamp: Date.now(),
+        });
+        console.log(this.commentReplies);
+        comment.replyText = "";
+        comment.replying = false;
+      }
+    },
+    deleteReply(reply) {
+      // 假設你的回覆數據結構中有 id 屬性
+      const replyIndex = this.commentReplies.findIndex(r => r.id === reply.id);
+      if (replyIndex !== -1) {
+        this.commentReplies.splice(replyIndex, 1);
+      }
+    },
+    deleteComment(comment) { // 刪除留言
+      const index = this.comments.indexOf(comment);
+      if (index !== -1) {
+        this.comments.splice(index, 1);
+      }
+    },
+    likeButton(comment) { // 喜歡按鈕
+      comment.likes++;
+    },
+    dislikeButton(comment) { // 不喜歡按鈕
+      comment.dislikes++;
+    },
+    editComment(comment) { // 編輯按鈕
+      this.commentText = comment.text;
+      comment.editing = true;
+    },
+    saveEdit(comment) { // 儲存編輯按鈕
+      if (this.commentText.trim() !== "") {
+        comment.text = this.commentText;
+        comment.editing = false;
+        this.commentText = "";
+      }
+    },
   },
   async mounted() {
     this.movieInfo = this.$route.query;
-    console.log("Movie Details:", this.movieInfo);
+    console.log("Movie Details:", this.movieInfo.movieId);
     this.getPerson();
     await this.getTrailer();
     await this.initYouTubePlayer();
@@ -388,7 +396,7 @@ export default {
             </div>
           </div>
           <!-- 留言區 -->
-          <div :style="{ filter: blurredArea && !baoleiButton ? 'blur(5px)' : 'none', }">
+          <!-- <div :style="{ filter: blurredArea && !baoleiButton ? 'blur(5px)' : 'none', }"> -->
             <!-- 排序下拉框 -->
             <div class="mb-3">
               <span>{{ this.comments.length + "件留言" }}</span>
@@ -400,49 +408,61 @@ export default {
             </div>
             <!-- 新增留言 -->
             <form class="mt-4" @click.prevent="">
-              <div class="mb-3">
+              <div class="mb-3" v-if="this.getAuth">
                 <label for="commentInput" class="form-label"><span>新增留言</span></label>
-                <textarea rows="1" v-model="commentText" class="form-control" id="commentInput" required style="outline:none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
+                <textarea rows="1" v-model="commentText" class="form-control" name="comment" id="commentInput" required style="border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
+                <div style="text-align: end;">
+                  <button type="submit" class="btn btn-outline-dark" required @click="commentCreate" v-if="this.getAuth">留言</button>
+                </div>
               </div>
-              <button type="submit" class="btn btn-outline-dark" @click="commentCreate">留言</button>
             </form>
             <!-- 遍歷並顯示留言 -->
-            <div v-for="comment in sortedComments" :key="comment.number" class="card mb-2">
+            <div v-for="(comment, index) in sortedComments" :key="comment.number" class="card mb-2">
               <!-- 留言內容 -->
               <div class="card-body">
                 <span>{{ "@"+comment.account }}</span>
                 <small class="text-muted">{{ this.commentTimeDif(comment.commentTime) }}</small>
-                <button @click="editComment(item)" class="btn btn-link" style="margin-left: 10px; text-decoration: none">編輯</button>
-                <button @click="deleteComment(item)" class="btn btn-link" style="text-decoration: none">刪除</button><br />
+                <button @click="editComment(comment)" class="btn btn-link" style="margin-left: 10px; text-decoration: none">編輯</button>
+                <!-- v-if="this.getAuth" -->
+                <button v-if="comment.editing" @click="saveEdit(comment)" class="btn btn-link" style="text-decoration: none">儲存</button>
+                <button @click="deleteComment(comment)" class="btn btn-link" style="text-decoration: none">刪除</button><br />
+                <!-- v-if="this.getAuth" -->
                 <span>{{ comment.commentText }}</span><br>
                 <button @click="likeButton(item)" class="btn btn-outline-primary" style="border: 0">
                   <i class="fa-regular fa-thumbs-up"></i>{{ comment.favorite }}
                 </button>
-                <button @click="dislikeButton(comment)" class="btn btn-outline-danger" style="border: 0"><i class="fa-regular fa-thumbs-down"></i>{{ comment.dislike }}</button>
-                <button @click="replyComment(comment)" class="btn btn-link" style="text-decoration: none; margin-left: 5px">回覆</button>
+                <button @click="dislikeButton(comment)" class="btn btn-outline-danger" style="border: 0">
+                  <i class="fa-regular fa-thumbs-down"></i>{{ comment.dislike }}
+                </button>
+                <button @click="chooseComment(comment, comment.commentIndex)" class="btn btn-link" style="text-decoration: none; margin-left: 5px">回覆</button>
                 <button v-if="comment.editing" @click="saveEdit(comment)" class="btn btn-link" style="text-decoration: none">儲存</button>
-
+                
                 <!-- 顯示回覆的區域 -->
-                <!-- <div v-if="comment.replies.length > 0" class="mt-2">
-                  <h6>回覆:</h6> -->
-                  <!-- 遍歷並顯示回復 -->
-                  <!-- <div v-for="reply in comment.replies" :key="reply.id" class="card mb-2"> -->
-                    <!-- 回覆內容 -->
-                    <!-- <div class="card-body">
-                      <span>{{ "@" + this.name }}</span>
-                      <small class="text-muted">{{ commentTime(reply.timestamp) }}</small><br />
-                      <span>{{ reply.text }}</span>
-                      <button @click="deleteReply(comment, reply)" class="btn btn-link" style="text-decoration: none">刪除</button>
+                <div v-if="commentReplies.length > 0" class="mt-2">
+                  <div v-for="item in commentReplies" :key="item.commentIndexIndex" class="card mb-2">
+                    <div class="card-body">
+                      <span v-if="commentReplies.commentIndex">{{ "@" + item.account }}</span>
+                      <small class="text-muted">{{ this.commentTimeDif(item.commentTime) }}</small>
+                      <button @click="editComment(comment)" class="btn btn-link" style="margin-left: 10px; text-decoration: none">編輯</button>
+                      <button v-if="comment.editing" @click="saveEdit(comment)" class="btn btn-link" style="text-decoration: none">儲存</button>
+                      <button @click="deleteReply(item.commentText)" class="btn btn-link" style="text-decoration: none">刪除</button><br/>
+                      <span>{{ item.commentText }}</span><br>
+                      <button @click="likeButton(item)" class="btn btn-outline-primary" style="border: 0">
+                        <i class="fa-regular fa-thumbs-up"></i>{{ comment.favorite }}
+                      </button>
+                      <button @click="dislikeButton(comment)" class="btn btn-outline-danger" style="border: 0">
+                        <i class="fa-regular fa-thumbs-down"></i>{{ comment.dislike }}
+                      </button>
                     </div>
                   </div>
-                </div> -->
+                </div>
                 <!-- 回覆留言的表單 -->
-                <form v-if="comment.replying" @submit.prevent="addReply(comment)" class="mt-2">
+                <form v-if="comment.replying" @submit.prevent="addReply(comment, comment.replyText)" class="mt-2">
                   <div class="mb-3">
                     <label for="replyInput" class="form-label">回覆留言</label>
-                    <textarea v-model="comment.replyText" class="form-control" id="replyInput" rows="2" required style="resize: none"></textarea>
+                    <textarea v-model="replyText" class="form-control" id="replyInput" rows="2" required style="resize: none"></textarea>
                   </div>
-                  <button type="submit">發送回覆</button>
+                  <button type="submit" @click="commentCreateChild()">回覆</button>
                 </form>
               </div>
             </div>
@@ -450,7 +470,7 @@ export default {
         </div>
       </div>
     </div>
-  </div>
+  <!-- </div> -->
 </template>
 
 <style scoped lang="scss">

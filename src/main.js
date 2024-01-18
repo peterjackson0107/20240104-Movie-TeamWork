@@ -5,6 +5,7 @@ import router from './router'
 import { createPinia } from 'pinia'
 import Popper from "vue3-popper";
 import 'bootstrap'
+import { register } from 'swiper/element/bundle';
 
 const app = createApp(App)
 
