@@ -15,7 +15,10 @@ export default {
       show:0,
       show2:0,
       aa:"",
-      b:"" //修改彈跳視窗
+      b:"", //修改彈跳視窗
+      verify:"",
+      emailboxA:["@gmail.com","@yahoo.com.tw"],
+      emailboxTarget:""
     }
   },
   components: {
@@ -49,7 +52,7 @@ export default {
                 account:this.account,
                 password:this.password,
                 name:this.name,
-                email:this.email,
+                email:(this.email + this.emailboxTarget),
                 phone:this.phone
               })
             })
@@ -58,7 +61,7 @@ export default {
             // 處理返回的數據
               console.log(kk)
               if(kk.code =200){
-                this.$router.push("/")
+                this.$router.push("/login")
               }
             })
             .catch(error => {
@@ -116,6 +119,26 @@ export default {
     },
     back(){
         this.$router.push("/login")
+    },
+    verifyway(){
+      fetch('http://localhost:8080/movie/user/verifyAccount', {
+        method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+        headers: {
+          'Content-Type': 'application/json'
+          },
+        body: JSON.stringify({
+          account: this.account,
+          verificationCode:this.verify
+        })
+      })
+      .then(response => response.json())
+      .then(data => { // 處理返回的數據
+        console.log(data);
+        this.$router.push("/login")
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
     }
   },
   mounted(){
@@ -147,14 +170,19 @@ export default {
             <label class="tbc" for="floatingInput">再確認一次密碼</label>
             </div>
             <p class="textL">Email</p>
-            <div class="form-floating mb-3">
-              <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="this.email">
-              <label class="tbc" for="floatingInput">請在這裡輸入Email</label>
+            <div class="emailbox">
+              <div class="form-floating mb-3 tbq">
+                <input type="text" class="form-control" id="floatingInput" placeholder="name@example.com" v-model="this.email">
+                <label class="tbcq" for="floatingInput">請在這裡輸入Email</label>
+              </div>
+              <select name="" id="" v-model="this.emailboxTarget" class="selectmailbox">
+                <option  v-for="(item, index) in this.emailboxA" :key="index" :value="item">{{ item }}</option>
+              </select>
             </div>
             <p class="textL">手機</p>
             <div class="form-floating mb-3">
               <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="this.phone" onkeyup="value=value.replace(/[^\d]/g,'') ">
-              <label class="tbc" for="floatingInput">請在這裡輸入手機(純數字)</label>
+              <label class="tbc" for="floatingInput">請在這裡輸入手機(10個純數字)</label>
             </div>
             <p class="textL">名字/暱稱</p>
             <div class="form-floating mb-3">
@@ -162,11 +190,34 @@ export default {
               <label class="tbc" for="floatingInput">請在這裡輸入名字/暱稱</label>
             </div>
             <div class="logbox" style="margin-top: 30px;" >
-              <button type="button" class="buttonR" @click="back">取消</button>
+              <button type="button" class="buttonR" style="margin-right: 24%;" @click="back">取消</button>
+              <button type="button" class="buttonS" data-bs-toggle="modal" data-bs-target="#additem">驗證</button>
               <Popper  arrow placement="top" class="root" :content="this.b">
                 <button type="button" class="buttonR" @click="register()">註冊</button>
               </Popper>
             </div>
+          <!-- Modal -->
+          <div class="modal fade" id="additem" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title a" id="exampleModalLabel">請輸入驗證碼</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <p class="textall">帳號：{{this.account}}</p>
+                  <p class="textall">驗整碼</p>
+                  <div class="form-floating mb-3">
+                    <input type="text" class="form-control tb" id="floatingInput" placeholder="" v-model="this.verify">
+                    <label class="tbc" for="floatingInput">在這裡輸入驗整碼</label>
+                  </div>
+                </div>
+                <div class="modal-footer" style="justify-content: space-around;">
+                    <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: green;border: none;" @click="verifyway" :disabled="this.verify.length <=7">驗證</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
     </div>
 </template>
@@ -174,12 +225,15 @@ export default {
 <style scoped lang="scss">
 .cBox{
   width: 100vw;
-  height: 120vh;
+  height: 146vh;
   text-align: center;
   display: flex;
   justify-content: center;
+  background-image: url(../../picture/Movie.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
 .box{
-  height: 92%;
+  height: 95%;
   width: 40%;
   // margin-top: 2%;
   align-self: center;
@@ -203,8 +257,16 @@ export default {
     width: 80%;
     margin: 0 auto;
   }
+  .tbq{
+    width: 80%;
+    // margin: 0 auto;
+    margin-right: 5%;
+  }
   .tbc{
     margin-left: 10%;
+  }
+  .tbcq{
+    margin-left: 0%;
   }
   .tbp{
     width: 80%;
@@ -236,7 +298,7 @@ export default {
     display: flex;
     height: 15%;
     width: 80%;
-    justify-content: space-between;
+    // justify-content: space-between;
     .button{
       width: 35%;
       height: 55%;
@@ -253,13 +315,24 @@ export default {
 }
 
 .buttonR{
-        width: 11.2vw;
+        width: 9.2vw;
         height: 7.9vh;
         border: none;
         background-color: rgb(176, 182, 213);
         border-radius: 10px;
         font-size: 1.5em;
         font-family:'jf-openhuninn-2.0';
+}
+.buttonS{
+        width: 5.2vw;
+        height: 4.9vh;
+        border: none;
+        background-color: rgb(176, 182, 213);
+        border-radius: 10px;
+        font-size: 1.5em;
+        font-family:'jf-openhuninn-2.0';
+        margin-top: 4%;
+        margin-right: 2%;
 }
 .root {
     --popper-theme-background-color: #333333;
@@ -270,5 +343,31 @@ export default {
     --popper-theme-border-radius: 6px;
     --popper-theme-padding: 32px;
     --popper-theme-box-shadow: 0 6px 30px -6px rgba(0, 0, 0, 0.25);
-  }
+}
+
+.text{
+  font-family:'jf-openhuninn-2.0';
+  font-size: 2em;
+  width: 80%;
+  margin: 0 auto 0 auto;
+}
+.textall{
+  font-family:'jf-openhuninn-2.0';
+  font-size: 1.5em;
+  margin: 0 0 10px 0;
+}
+.textHeader{
+  font-family:'jf-openhuninn-2.0';
+  font-size: 2em;
+  margin: 0;
+}
+.emailbox{
+  display: flex;
+  width: 80%;
+  margin: 0 auto;
+}
+.selectmailbox{
+  // height: 200%;
+  margin-bottom: 4%;
+}
 </style>

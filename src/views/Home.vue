@@ -36,7 +36,6 @@ export default {
     },
     typePerPage() {
       const cutArray = [];
-
       for (let i = 0; i < this.objtype.length; i += this.itemTypePerSize) {
         cutArray.push(this.objtype.slice(i, i + this.itemTypePerSize));
       }
@@ -56,7 +55,7 @@ export default {
       };
 
       let page = 1;
-      let count = 30; //要抓的電影數
+      let count = 50; //要抓的電影數
       let playingMovies = [];
 
       try {
@@ -115,7 +114,7 @@ export default {
       };
 
       let page = 1;
-      let count = 30; //要抓的電影數
+      let count = 50; //要抓的電影數
       let comingMovies = [];
 
       try {
@@ -356,7 +355,7 @@ export default {
           <div class="row">
             <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
               <a @click="chooseMovie(item)">
-                <div class="card" style="width: 420px;">
+                <div class="card" style="width: 400px;">
                   <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報">
                   <div class="card-body">
                     <p class="card-text">
@@ -372,11 +371,11 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev" @click="prevSlide" style="left: -160px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev" @click="prevSlide" style="left: -150px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next" @click="nextSlide" style="right: -150px;">
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next" @click="nextSlide" style="right: -120px;">
         <span class="carousel-control-next-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-right" style="font-size: 50px"></i></span>
         <span class="visually-hidden">Next</span>
       </button>
@@ -391,7 +390,7 @@ export default {
           <div class="row">
             <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
               <a @click="chooseMovie(item)">
-                <div class="card" style="width: 420px;">
+                <div class="card" style="width: 400px;">
                   <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報">
                   <div class="card-body">
                     <p class="card-text">
@@ -407,11 +406,11 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample1" data-bs-slide="prev" @click="prevSlide" style="left: -160px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample1" data-bs-slide="prev" @click="prevSlide" style="left: -150px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample1" data-bs-slide="next" @click="nextSlide" style="right: -150px;">
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample1" data-bs-slide="next" @click="nextSlide" style="right: -120px;">
         <span class="carousel-control-next-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-right" style="font-size: 50px"></i></span>
         <span class="visually-hidden">Next</span>
       </button>
@@ -426,7 +425,7 @@ export default {
           <div class="row">
             <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
               <a @click="chooseMovie(item)">
-                <div class="card" style="width: 420px;">
+                <div class="card" style="width: 400px;">
                   <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報">
                   <div class="card-body">
                     <p class="card-text">
@@ -442,11 +441,11 @@ export default {
           </div>
         </div>
       </div>
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample2" data-bs-slide="prev" @click="prevSlide" style="left: -160px;">
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample2" data-bs-slide="prev" @click="prevSlide" style="left: -150px;">
         <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
         <span class="visually-hidden">Previous</span>
       </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample2" data-bs-slide="next" @click="nextSlide" style="right: -150px;">
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample2" data-bs-slide="next" @click="nextSlide" style="right: -120px;">
         <span class="carousel-control-next-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-right" style="font-size: 50px"></i></span>
         <span class="visually-hidden">Next</span>
       </button>

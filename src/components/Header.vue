@@ -1,41 +1,50 @@
 <script>
 import { RouterLink, RouterView } from 'vue-router'
 import { mapState,mapActions } from 'pinia';
+import Cookies from 'js-cookie'
 import auth from '../store/auth';
 export default{
     data(){
         return{
             login:'',
             loginAccount:"AA123",
+            userLoggedIn:false
         }
+    },
+    computed:{
+        ...mapState(auth, ["getAuth","getuser"])
     },
     components:{
         RouterLink,
-    },
-    computed:{
-        ...mapState(auth,["getAuth","getuser"]),
     },
     methods:{
         ...mapActions(auth,["login","logout"]),
         loga(){
             this.$router.push("/login")
+        },
+        logincheck(){
+            this.userLoggedIn = Cookies.get('userLoggedIn') === 'true'
+            if (this.userLoggedIn) {
+                this.loginAccount = Cookies.get('account')
+                Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
+                Cookies.set('account', this.loginAccount, { expires: 7, path: '/' });
+            }
+            console.log(this.userLoggedIn)
+        },
+        logout1(){
+            Cookies.remove('userLoggedIn');
+            Cookies.remove('account');
+            this.userLoggedIn =false
+            this.loginAccount =""
+            this.logout()
+            this.$router.push("/login")
         }
     },
     mounted(){
-        // this.login = true
-    //     if(localStorage.getItem("keep") == "keep"){
-    //         this.setacc =localStorage.getItem("setacc")
-    //         this.acc = JSON.parse(localStorage.getItem("account"))
-    //         this.pas = JSON.parse(localStorage.getItem("password"))
-    //         for(let i = 0 ; i<this.acc.length ; i++){
-    //     if( this.acc[i] == this.setacc){
-    //         console.log(this.acc[i])
-    //         console.log(this.pas[i])
-    //         this.account = this.acc[i]
-    //         this.password = this.pas[i]
-    //       }
-    //     }
-    //   }
+        this.logincheck();
+        this.$watch(() => Cookies.get('userLoggedIn'), (newVal) => {
+            this.userLoggedIn = newVal === 'true';
+        });
     }
 }
 </script>
@@ -48,16 +57,17 @@ export default{
             <RouterLink to="/ticket" class="a">購票</RouterLink>
             <RouterLink :to="`/mypage`" class="a">個人主頁</RouterLink>
             <RouterLink :to="`/create`" class="a">影迷創作</RouterLink>
-            <div v-if="this.getAuth == true" class="a">
-                <p>登入帳號：{{this.getuser }}</p>
+            <!-- <RouterLink :to="`/backCreate`" class="a">後臺管理</RouterLink> -->
+            <div v-if="this.userLoggedIn || this.getAuth" class="a">
+                <p v-if="this.userLoggedIn">登入帳號：{{ this.loginAccount }}</p>
+                <p v-if="this.getAuth">登入帳號：{{ this.getuser }}</p>
             </div>
-            <div v-if="this.getAuth == true" class="a">
-                <p @click="this.logout()">登出</p>
+            <div v-if="this.userLoggedIn || this.getAuth" class="a">
+                <p @click="logout1">登出</p>
             </div>
-            <div v-if="this.getAuth == false" class="a" style="">
+            <div v-if="(this.getAuth !== this.userLoggedIn) == false" class="a" style="">
                 <p @click="loga">登入</p>
             </div>
-            
         </div>
     </div>
 </template>
