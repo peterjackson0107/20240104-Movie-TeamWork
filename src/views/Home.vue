@@ -1,4 +1,6 @@
 <script>
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import 'swiper/css';
 export default {
   data() {
     return {
@@ -6,10 +8,13 @@ export default {
       objComeMovies: [],
       objPopularMovies: [],
       objtype: [],
+      objTypePopularMovies: [],
       itemsPerSlide: 3, // 每頁顯示的輪播項目數量
-      itemTypePerSize: 5,
-      typePerRow: 7,
+      itemsPerSlide1: 9, // 每頁顯示的輪播項目數量
       currentSlide: 0,
+      selectedType: '', // 選單選到的類型
+      // page: [],
+      // swiper: null,
     };
   },
   computed: {
@@ -36,15 +41,31 @@ export default {
     },
     typePerPage() {
       const cutArray = [];
-      for (let i = 0; i < this.objtype.length; i += this.itemTypePerSize) {
-        cutArray.push(this.objtype.slice(i, i + this.itemTypePerSize));
+      for (let i = 0; i < this.objTypePopularMovies.length; i += this.itemsPerSlide1) {
+        cutArray.push(this.objTypePopularMovies.slice(i, i + this.itemsPerSlide1));
       }
-      console.log(cutArray)
+      console.log('typePerPage:', cutArray)
       return cutArray;
     },
-},
+  },
+  // components: {
+  //   Swiper,
+  //   SwiperSlide,
+  // },
+  // setup() {
+  //   const onSwiper = (swiper) => {
+  //     console.log(swiper);
+  //   };
+  //   const onSlideChange = () => {
+  //     console.log('slide change');
+  //   };
+  //   return {
+  //     onSwiper,
+  //     onSlideChange,
+  //   };
+  // },
   methods: {
-    async getPlayMovie() { //上映中
+    async getPlayMovie() { // 上映中
       const options = {
         method: "GET",
         headers: {
@@ -103,7 +124,7 @@ export default {
         console.error(error);
       }
     },
-    async getComeMovie() { //即將上映
+    async getComeMovie() { // 即將上映
       const options = {
         method: "GET",
         headers: {
@@ -114,7 +135,7 @@ export default {
       };
 
       let page = 1;
-      let count = 50; //要抓的電影數
+      let count = 30; //要抓的電影數
       let comingMovies = [];
 
       try {
@@ -162,7 +183,7 @@ export default {
         console.error(error);
       }
     },
-    async getPopularMovie() { //歷史熱門電影
+    async getPopularMovie() { // 歷史熱門電影
       const options = {
         method: 'GET',
         headers: {
@@ -210,6 +231,71 @@ export default {
         console.error(error);
       }
     },
+    async getTypeMovie(event) { // 用選單找歷史熱門電影
+      const options = {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww'
+        }
+      };
+      // 取得選單值
+      this.selectedType = event.target.value;
+      console.log(this.selectedType);
+      let genres = "";
+      for(let i=0; i<this.objtype.length; i++){
+        if(this.selectedType === this.objtype[i].name){
+          genres = this.type[i].id
+        }
+      }
+      console.log(genres);
+      let page = 1;
+      let count = 36; //要抓的電影數
+      let typeOfMovies = [];
+      
+      try {
+        while (typeOfMovies.length < count) {
+          const api = `https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=zh-TW&page=1&sort_by=popularity.desc&with_genres=${genres}`;
+          const response = await fetch(api, options);
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          const data = await response.json();
+          const moviesOnPage = data.results.filter((movie) => {
+            // 檢查poster_path是否存在
+            if (!movie.poster_path) {
+                return false;
+            }
+            return true;
+        });
+        // 移除已存在的電影，避免重複
+        for (const movie of moviesOnPage) {
+            if (!typeOfMovies.some((existingMovie) => existingMovie.title === movie.title)) {
+              typeOfMovies.push(movie);
+            }
+          }
+          if (page < data.total_pages) {
+            page++;
+          } else {
+            break;
+          }
+        }
+        // 截取前 count 筆資料
+        const typeOfPopularMovies = typeOfMovies.filter((movie) => movie.poster_path).slice(0, count).sort((a, b) => b.vote_average - a.vote_average);
+        this.objTypePopularMovies = typeOfPopularMovies;
+        console.log('選擇類型電影:', this.objTypePopularMovies);
+        // this.splitMovies();
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    // splitMovies() {
+    //   const pageSize = 9;
+    //   this.pages = [];
+    //   for (let i = 0; i < this.objTypePopularMovies.length; i += pageSize) {
+    //     this.pages.push(this.objTypePopularMovies.slice(i, i + pageSize));
+    //   }
+    // },
     getPlayPerson(movieId) { //上映中 演員*5 + 導演*1
         const options = {
             method: "GET",
@@ -341,6 +427,30 @@ export default {
     await this.getComeMovie();
     await this.getPopularMovie();
     this.getMovieType();
+    // setTimeout(() => {
+    //   this.splitMovies();
+    // }, 500);
+  //   this.$nextTick(() => {
+  //         var swiper = new Swiper(this.$refs.mySwiper, {
+  //           slidesPerView: 3,
+  //           slidesPerColumn: 3,
+  //           spaceBetween:10,
+  //           autoplay: {
+  //             delay: 3000,
+  //             disableOnInteraction: false,
+  //             stopOnLastSlide: false,
+  //           },
+  //           loop: false,
+  //           observer: true,
+  //           observeParents: true,
+  //         });
+  //       })
+  // },
+  // watch: {
+  //   objTypePopularMovies: {
+  //     handler: 'initSwiper', // 监听数据变化，调用initSwiper方法
+  //     immediate: true // 立即执行一次
+  //   }
   },
 };
 </script>
@@ -454,9 +564,43 @@ export default {
 
 <h1>分類選擇</h1>
 <div class="movieType">
-    <select>
-      <option  v-for="(item, index) in this.objtype" :key="index" value="">{{ item.name }}</option>
+    <select @change="getTypeMovie">
+      <option v-for="(item, index) in this.objtype" :key="index">{{ item.name }}</option>
     </select>
+</div>
+<div class="container mt-5">
+    <div id="customCarousel" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <div v-for="(itemsChunk, index) in typePerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
+          <div class="row">
+            <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
+              <a @click="chooseMovie(item)">
+                <div class="card">
+                  <!-- style="width: 400px;" -->
+                  <img :src="'https://image.tmdb.org/t/p/w342' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報">
+                  <div class="card-body">
+                    <p class="card-text">
+                      <span>{{ "名稱：" + item.title }}</span><br>
+                      <span>{{ "上映日期：" + item.release_date }}</span>
+                    </p>
+                  </div>
+                </div>
+              </a>
+              <div class="carousel-caption d-none d-md-block">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#customCarousel" data-bs-slide="prev" @click="prevSlide" style="left: -150px;">
+        <span class="carousel-control-prev-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-left" style="font-size: 50px;"></i></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#customCarousel" data-bs-slide="next" @click="nextSlide" style="right: -120px;">
+        <span class="carousel-control-next-icon" aria-hidden="true"><i class="fa-solid fa-circle-arrow-right" style="font-size: 50px"></i></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -477,5 +621,8 @@ span, button, p, label, select {
       background-color: gray;
     }
   }
+}
+.card{
+  margin: 10px 0;
 }
 </style>

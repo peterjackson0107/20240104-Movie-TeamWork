@@ -522,7 +522,7 @@ fetch('http://localhost:8080/movie/art/create', {
     
     //點選電影海報的展示區 (需要抓他的電影名稱，去展示所有這部電影的作品)
     selectMovie(movie) {
-      if(this.userLoggedIn == true)
+      // if(this.userLoggedIn == true)
       this.selectedMovie = movie;
 
 },
