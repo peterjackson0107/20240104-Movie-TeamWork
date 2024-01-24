@@ -2,12 +2,9 @@
 import { defineComponent } from 'vue'
 import { NCarousel } from 'naive-ui'
 import { mapState,mapActions } from 'pinia';
+import Cookies from "js-cookie";
 // import auth from '../store/auth';
 export default defineComponent({
-  components: {
-    NCarousel
-  },
-
   data() {
     return {
       searchMode: 'original',   // 搜尋模式：original（原始）或 result（結果）
@@ -31,8 +28,10 @@ export default defineComponent({
       password:"",
       userLoggedIn:false,
 
-      name:"kass",
-      artName:"遊戲",
+      name: "",
+      // artName: "遊戲",
+      artName: "",
+      loginAccount: "",
 
       //用于存储当前选定电影的图像URL
       carouselImages: [],
@@ -85,10 +84,12 @@ export default defineComponent({
       count: 0
     }
   },
-
   created() {
     // 先取得所有電影類型
     this.getMovieType();
+  },
+  components: {
+    NCarousel
   },
   computed: {
     filteredMovies() {
@@ -111,19 +112,16 @@ export default defineComponent({
       return this.filteredMovies.slice(0, this.maxVisibleCards);
     },
   },
-
   methods: {
-
-    logincheck(){
-        this.userLoggedIn = Cookies.get('userLoggedIn')
-        if (this.userLoggedIn) {
-          this.account = Cookies.get('account')
-          Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
-          Cookies.set('account', this.account, { expires: 7, path: '/' });
-        }
-      console.log(this.userLoggedIn)
+    logincheck() {
+      this.userLoggedIn = Cookies.get('userLoggedIn') === 'true'
+      if (this.userLoggedIn) {
+        this.loginAccount = Cookies.get('account')
+        Cookies.set('account', this.loginAccount, { expires: 7, path: '/' });
+      }
+      // console.log(this.userLoggedIn)
+      console.log(this.loginAccount)
     },
-
     PerformSearch() {
       // 執行搜尋邏輯
       this.searchResults = this.searchText;
@@ -169,18 +167,14 @@ export default defineComponent({
       this.convasIsCloss = false;
       this.canEnterArea = true; // 重置为可以进入区域
     },
-
     filterMoviesByGenre() {
       // 根据下拉菜单选择的电影类型过滤电影
       this.filteredMovies = this.objPlayMovies.filter(movie => movie.genre_ids.includes(this.selectedGenre.id));
     },
-
     checkCanEnterArea() {
       // 检查是否可以进入区域
       this.canEnterArea = this.filteredMovies.length > 0;
     },
-
-
     onCanvasMouseDown() {
       this.isCanvasMouseDown = true
       this.setTempCanvas()
@@ -189,7 +183,9 @@ export default defineComponent({
       this.saveCanvasToHistory()
       this.resetToolState()
     },
-    onSizeMouseDown() { this.isSizing = true },
+    onSizeMouseDown() { 
+      this.isSizing = true 
+    },
     canvasToImage() {
       let url = this.$refs['sketchpad'].toDataURL("image/png", 1.0)
       const link = document.createElement('a')
@@ -200,6 +196,7 @@ export default defineComponent({
       link.click()
 
       console.log(this.selectedMovie)
+      console.log(this.artName)
 
 fetch('http://localhost:8080/movie/art/create', {
   method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
@@ -211,7 +208,7 @@ fetch('http://localhost:8080/movie/art/create', {
     movieId: this.selectedMovie.id,
     artname: this.artName,
     artlocation: url,
-    account: this.name,
+    account: this.loginAccount,
     
   })
 })
@@ -349,9 +346,6 @@ fetch('http://localhost:8080/movie/art/create', {
     forward() {
       window.history.forward()
     },
-
-    
-
     async getPlayMovie() { //上映中
 
       const options = {
@@ -447,7 +441,6 @@ fetch('http://localhost:8080/movie/art/create', {
       
 
     },
-
     getMovieType() { //電影類型 
       const options = {
         method: 'GET',
@@ -472,7 +465,6 @@ fetch('http://localhost:8080/movie/art/create', {
         })
         .catch(err => console.error(err));
     },
-
     enterGenreArea() { //下拉選單的方法，選擇電影類型
       // this.searchMode = 'result'; //這行註解掉的原因是，不管有沒有搜到電影 他都會跳進下一頁
       //this.convasIsCloss = true;
@@ -480,18 +472,15 @@ fetch('http://localhost:8080/movie/art/create', {
       console.log('進入區域，選擇的電影類型是：', this.selectedGenre);
       // 可以根据选中的电影类型执行相应的操作
     },
-
     getMoviePosterPath(posterPath) {
       // 返回电影的完整海报路径
       return `https://image.tmdb.org/t/p/w500${posterPath}`;
     },
-
     // 显示更多卡片
     showMoreCards() {
       // 每次点击增加显示的卡片数量
       this.maxVisibleCards += 4; // 或其他你希望增加的数量
     },
-
     searchMovie(movie){
       this.selectedMovie = movie;
 
@@ -518,18 +507,12 @@ fetch('http://localhost:8080/movie/art/create', {
     // this.carouselImages =img.artList[3].artLocation
     ;})
     },
-
-    
     //點選電影海報的展示區 (需要抓他的電影名稱，去展示所有這部電影的作品)
     selectMovie(movie) {
       // if(this.userLoggedIn == true)
       this.selectedMovie = movie;
-
 },
-
-  },
-
-
+},
   async mounted() {
     this.searchResults = this.searchText;
       this.searchMode = 'original';
@@ -593,6 +576,10 @@ fetch('http://localhost:8080/movie/art/create', {
       <div v-if="this.selectedMovie">
         <p>電影名稱: {{ selectedMovie.title }}</p>
         <p>電影id: {{ selectedMovie.id }}</p>
+        <p>{{"您的帳號:" + this.loginAccount}}</p>
+        <p>請為您的作品取名字</p>              
+        <textarea rows="1" v-model="artName" required style="width:25vw; border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
+
 
     <!-- 其他的顯示內容... -->
   </div>
