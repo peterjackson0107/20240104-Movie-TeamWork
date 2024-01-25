@@ -33,9 +33,7 @@ export default {
     };
   },
   computed: {
-    sortComments() {
-      // 篩選留言
-      // console.log(this.comments);
+    sortComments() { // 篩選留言
       const sorted = this.comments.slice();
       switch (this.sortOrder) {
         case "latest":
@@ -48,8 +46,7 @@ export default {
     },
   },
   methods: {
-    // cookie
-    logincheck() {
+    logincheck() { // cookie
       this.userLoggedIn = Cookies.get('userLoggedIn') === 'true'
       if (this.userLoggedIn) {
         this.loginAccount = Cookies.get('account')
@@ -68,15 +65,10 @@ export default {
             "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww",
         },
       };
-      fetch(
-        `https://api.themoviedb.org/3/movie/${this.movieInfo.movieId}/credits?language=en-US`,
-        options
-      )
+      fetch(`https://api.themoviedb.org/3/movie/${this.movieInfo.movieId}/credits?language=en-US`, options)
         .then((response) => response.json())
         .then((response) => {
-          const directors = response.crew.filter(
-            (person) => person.job === "Director"
-          );
+          const directors = response.crew.filter((person) => person.job === "Director");
           const cast = response.cast.slice(0, 5);
           // console.log(directors);
           // console.log(cast);
@@ -99,10 +91,7 @@ export default {
         },
       };
       try {
-        const response = await fetch(
-          `https://api.themoviedb.org/3/movie/${this.movieInfo.movieId}/videos?language=en-US`,
-          options
-        );
+        const response = await fetch(`https://api.themoviedb.org/3/movie/${this.movieInfo.movieId}/videos?language=en-US`, options);
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -124,10 +113,7 @@ export default {
             "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww",
         },
       };
-      fetch(
-        "https://api.themoviedb.org/3/genre/movie/list?language=en",
-        options
-      )
+      fetch("https://api.themoviedb.org/3/genre/movie/list?language=en", options)
         .then((response) => response.json())
         .then((response) => {
           (this.type = response.genres),
@@ -159,10 +145,7 @@ export default {
             "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww",
         },
       };
-      fetch(
-        `https://api.themoviedb.org/3/movie/${this.movieInfo.movieId}?language=en-US`,
-        options
-      )
+      fetch(`https://api.themoviedb.org/3/movie/${this.movieInfo.movieId}?language=en-US`, options)
         .then((response) => response.json())
         .then((response) => {
           (this.movieTime = response.runtime),
@@ -232,23 +215,28 @@ export default {
         this.replyText = "";
       }
     },
-    cancelReply() { // 取消回覆 comment.replying = false;
+    cancelReply() { // 取消回覆 
+      comment.replying = false;
       this.replyText = null;
     },
     likeButton(comment, index, indexOrder) { // 喜歡
       this.commentIndex = index;
       this.commentIndexOrder = indexOrder;
-      comment.favorite++;
+      // 計算 like 的變化值
+      const likeChange = comment.isLiked ? -1 : 1;
+      // 更新 like 數量
+      comment.favorite += likeChange;
+
       fetch("http://localhost:8080/movie/comment/likeAndDislike", {
-        method: "POST", // 這裡使用POST方法，因為後端是@PostMapping
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          commentIndex: this.commentIndex,
-          commentIndexOrder: this.commentIndexOrder,
+          commentIndex: index,
+          commentIndexOrder: indexOrder,
           movieID: this.movieInfo.movieId,
-          like: 1,
+          like: likeChange,
           dislike: 0,
         }),
       })
@@ -260,22 +248,26 @@ export default {
         .catch((error) => {
           console.error("Error fetching data:", error);
         });
+      // 切換 isLiked 狀態
+      comment.isLiked = !comment.isLiked;
     },
     dislikeButton(comment, index, indexOrder) { // 不喜歡
       this.commentIndex = index;
       this.commentIndexOrder = indexOrder;
-      comment.dislike++;
+      const dislikeChange = comment.isDisLiked ? -1 : 1;
+      comment.dislike += dislikeChange;
+      
       fetch("http://localhost:8080/movie/comment/likeAndDislike", {
-        method: "POST", // 這裡使用POST方法，因為後端是@PostMapping
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          commentIndex: this.commentIndex,
-          commentIndexOrder: this.commentIndexOrder,
+          commentIndex: index,
+          commentIndexOrder: indexOrder,
           movieID: this.movieInfo.movieId,
           like: 0,
-          dislike: 1,
+          dislike: dislikeChange,
         }),
       })
         .then((response) => response.json())
@@ -286,6 +278,7 @@ export default {
         .catch((error) => {
           console.error("Error fetching data:", error);
         });
+      comment.isDisLiked = !comment.isDisLiked;
     },
     startEditing(comment, index, indexOrder) { // 開始編輯留言
       this.commentIndex = index;
@@ -601,10 +594,7 @@ export default {
         <h5>{{ movie.area }}</h5>
         <select v-model="this.selectedTime">
           <option value="">選擇時間</option>
-          <option
-            v-for="(time, timeIndex) in JSON.parse(movie.onTime)"
-            :key="timeIndex"
-          >
+          <option v-for="(time, timeIndex) in JSON.parse(movie.onTime)" :key="timeIndex">
             {{ time }}
           </option>
         </select>
@@ -661,11 +651,11 @@ export default {
                 <!-- 留言文本，如果在編輯模式下顯示編輯框 -->
                 <textarea v-if="comment.editing" v-model="comment.editingText" rows="1" class="form-control" name="comment" id="commentInput" required style="border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea><br />
                 <!-- 按讚 -->
-                <button @click=" likeButton( comment, comment.commentIndex, comment.commentIndexIndex ) " class="btn btn-outline-primary" style="border: 0">
+                <button @click="likeButton( comment, comment.commentIndex, comment.commentIndexIndex )" class="btn btn-outline-primary" style="border: 0">
                   <i class="fa-regular fa-thumbs-up"></i>
                   {{ comment.favorite }}
                 </button>
-                <button @click="dislikeButton( comment, comment.commentIndex, comment.commentIndexIndex ) " class="btn btn-outline-danger" style="border: 0">
+                <button @click="dislikeButton( comment, comment.commentIndex, comment.commentIndexIndex )" class="btn btn-outline-danger" style="border: 0">
                 <i class="fa-regular fa-thumbs-down"></i>
                   {{ comment.dislike }}
                 </button>
