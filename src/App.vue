@@ -19,11 +19,11 @@ import Header from './components/Header.vue';
   height: 100vh;
   width: 100vw;
   .header {
-  height: 10vh;
+  height: 8vh;
 }
   .content{
   width: 100vw;
-  height: 90vh;
+  height: 92vh;
   text-align: center;
   }
 }

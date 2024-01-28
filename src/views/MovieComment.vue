@@ -4,7 +4,6 @@ import axios from "axios";
 export default {
   data() {
     return {
-      // 電影相關
       movieInfo: {},
       directors: {},
       casts: {},

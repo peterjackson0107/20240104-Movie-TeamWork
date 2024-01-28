@@ -19,23 +19,23 @@
         </div>
         <div class="icon">
             <button type="button" @click="create()"><i class="fa-solid fa-plus  fa-xs"></i></button>
-            <!-- <button type="button" @click="deleteMovie()"><i class="fa-solid fa-trash fa-xs"></i></button> -->
         </div>
         {{ this.selectedMovies }}
-        <table class="table">
+        <table class="table1">
             <thead>
                 <tr class="index">
-                    <th>刪除按鈕</th>
-                    <th>電影名稱</th>
+                    <th style="width: 5vw;">刪除</th>
+                    <th style="width: 25vw;">電影名稱</th>
                     <th>影院</th>
                     <th>影廳</th>
                     <th>價格</th>
                     <th>撥放日期</th>
-                    <th>修改</th>
+                    <th style="width: 10vw;">修改</th>
                 </tr>
                 <tr v-for="(movie, index) in displayedMovies" :key="index">
                     <td><button type="button" @click="this.deleteMovie(movie.number)"
-                            style="border: 0;background-color: white;"><i class="fa-solid fa-trash"></i></button></td>
+                            style="border: 0;background-color: rgb(100, 99, 99);"><i class="fa-solid fa-trash"></i></button>
+                    </td>
                     <td>{{ movie.movie }}</td>
                     <td>{{ movie.cinema }}</td>
                     <td>{{ movie.area }}</td>
@@ -44,7 +44,7 @@
                     <td>
                         <!-- 修改按鈕 -->
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                            data-bs-target="#staticBackdrop" @click="showEditModal(movie);searchTime() " >
+                            data-bs-target="#staticBackdrop" @click="showEditModal(movie); searchTime()">
                             修改
                         </button>
 
@@ -53,8 +53,10 @@
             </thead>
         </table>
         <div class="pagination">
-            <button @click="prevPage()" :disabled="currentPage === 1">上一頁</button>
-            <button @click="nextPage()" :disabled="currentPage === Math.ceil(movieList.length / pageSize)">下一頁</button>
+            <button @click="prevPage" :disabled="currentPage === 1">上一頁</button>
+            <button v-for="pageNumber in pageNumbers" :key="pageNumber" @click="goToPage(pageNumber)"
+                :class="{ 'active-page': pageNumber === currentPage }">{{ pageNumber }}</button>
+            <button @click="nextPage" :disabled="currentPage === totalPages">下一頁</button>
         </div>
     </div>
 
@@ -164,8 +166,22 @@ export default {
             // 返回排序后的片段
             return sortedMovies.slice(startIndex, endIndex);
         },
+        pageNumbers() {
+            const totalPages = Math.ceil(this.movieList.length / this.pageSize);
+            return Array.from({ length: totalPages }, (_, index) => index + 1);
+        },
     },
     methods: {
+        scrollToTop() {
+            window.scrollTo(0, 0);
+        },
+        goToPage(pageNumber) {
+            this.currentPage = pageNumber;
+            this.scrollToTop()
+        },
+        calculateTotalPages() {
+            this.totalPages = Math.ceil(this.movieList.length / this.pageSize);
+        },
         movieTimeAdd() {
             // 檢查是否至少相隔一個 runtime
             if (this.checkTimeGap()) {
@@ -369,8 +385,12 @@ export default {
 
 <style scoped lang="scss">
 .view {
-    margin-top: 10px;
-    margin-left: 5vw;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    // justify-content: center;
+    align-items: center;
+    background-color: rgb(100, 99, 99);
 
     .check {
         display: flex;
@@ -378,6 +398,7 @@ export default {
         width: 90vw;
         height: 12vh;
         border: 1px solid black;
+        margin-top: 10px;
 
         .search {
             height: 5vh;
@@ -394,6 +415,7 @@ export default {
             align-items: center;
             font-size: 16pt;
             margin-left: 1vw;
+            color: white;
 
             input {
                 width: 14vw;
@@ -408,6 +430,7 @@ export default {
             align-items: center;
             font-size: 16pt;
             margin-left: 1vw;
+            color: white;
 
             input {
                 width: 11vw;
@@ -423,6 +446,7 @@ export default {
             align-items: center;
             font-size: 16pt;
             margin-left: 1vw;
+            color: white;
 
             input {
                 width: 15vw;
@@ -440,34 +464,43 @@ export default {
         }
     }
 
-    .table {
+    .table1 {
         width: 90vw;
         height: auto;
 
+
         // border: 1px solid black;
         .index {
-            background-color: gray;
+            background-color: rgb(218, 216, 216);
         }
 
         th {
             height: 5vh;
             border: 1px solid black;
+
         }
 
         td {
+            // width: 10vw;
             height: 5vh;
             border: 1px solid black;
+            color: white;
+            font-size: 16pt;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     }
 
     .icon {
         display: flex;
-        justify-content: start;
-        align-items: center;
-        margin-bottom: 3vh;
+        width: 90vw;
+        height: 8vh;
+
 
         button {
-            background-color: white;
+            // background-color: white;
+            background-color: rgb(100, 99, 99);
             border-width: 0;
             font-size: 32pt;
             width: 5vw;
@@ -476,15 +509,23 @@ export default {
     }
 
     .pagination {
-        width: 80vw;
+        width: 90vw;
         justify-content: center;
         align-items: center;
+        background-color: rgb(100, 99, 99);
 
         button {
-            color: salmon;
-            background-color: white;
+            color: rgb(158, 158, 158);
             font-size: 18pt;
+            background-color: rgb(100, 99, 99);
+            border: 0px;
+
+            &.active-page,
+            &:hover {
+                color: salmon; // 上一页、下一页的颜色
+            }
         }
+
     }
 }
 
@@ -492,5 +533,4 @@ export default {
     height: 15vh;
     border: 1px solid black;
     overflow-y: auto;
-}
-</style>
+}</style>

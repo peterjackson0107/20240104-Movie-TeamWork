@@ -31,7 +31,7 @@
                 <button type="button" @click="movieTimeAdd()">加入</button>
             </div>
             <p style="margin: 0;">時間選項</p>
-            <div class="playTime">
+            <div class="playTime" style="background-color: white;">
                 <tr v-for="(play, index) in movieAllTime " :key="index">
                     <td><input type="checkbox" v-model="selectedItems[index]"></td>
                     <td>{{ play }}</td>
@@ -199,6 +199,7 @@ export default {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    background-color: rgb(100, 99, 99);
 
     .createMovieInfo {
         width: 50vw;

@@ -387,7 +387,8 @@ export default{
       height: 300px;
       border: 1px solid slategray;
       font-family:'jf-openhuninn-2.0';
-      font-size: 1.2em;
+      font-size: 1.5em;
+      text-align:center;
       overflow:scroll;
       // white-space: pre-wrap;
     }

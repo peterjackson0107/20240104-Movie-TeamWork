@@ -46,7 +46,7 @@
             </ul>
             <hr class="separator">
             <h2>總共價格</h2>
-            <h3>{{ this.totalPrice }}</h3>
+            <h3>${{ this.totalPrice }}</h3>
             <button type="button" @click="goinTicket()">返回</button>
             <button type="button" @click="buyTicket()">立即購票</button>
         </div>
@@ -299,7 +299,7 @@ export default {
 
     .ticketInfo {
         width: 30vw;
-        height: 100vh;
+        height: 90vh;
         // border: 1px solid;
 
         li {
@@ -312,12 +312,12 @@ export default {
         .separator {
             border: 5px solid black;
             /* 分隔線的顏色和樣式，你可以根據需要更改 */
-            margin-bottom: 50px;
+            // margin-bottom: 50px;
             /* 調整分隔線上下的邊距，根據需要更改 */
         }
 
         button {
-            margin-top: 80px;
+            margin-top: 30px;
         }
     }
 }

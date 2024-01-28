@@ -104,7 +104,6 @@ export default{
             <RouterLink to="/ticket" class="a">購票</RouterLink>
             <RouterLink :to="`/mypage`" class="a">個人主頁</RouterLink>
             <RouterLink :to="`/create`" class="a">影迷創作</RouterLink>
-            <RouterLink :to="`/test`" class="a">測試</RouterLink>
             <div v-if="this.userLoggedIn || this.getAuth" class="a">
                 <p v-if="this.userLoggedIn" @click="backuser()">登入帳號：{{ this.loginAccount }}</p>
                 <p v-if="this.getAuth" @click="backuser()">登入帳號：{{ this.getuser }}</p>
@@ -137,7 +136,7 @@ export default{
             font-family: "jf-openhuninn-2.0";
             height: 70%;
             width: 450px;
-            line-height: 1.4em;
+            line-height: 1em;
             font-size: 2em;
             text-decoration: none;
             white-space:nowrap;

@@ -1,7 +1,9 @@
 <script>
 import { defineComponent } from 'vue'
 import { NCarousel } from 'naive-ui'
-import { mapState,mapActions } from 'pinia';
+import { mapState, mapActions } from 'pinia';
+import Cookies from 'js-cookie'
+import Swal from 'sweetalert2'
 // import auth from '../store/auth';
 export default defineComponent({
   components: {
@@ -14,6 +16,7 @@ export default defineComponent({
       searchText: '',           // 搜尋文字
       searchResults: '',         // 搜尋結果
       convasIsCloss: false,
+      convasIs: false,
       //電影相關
       objPlayMovies: [], //"篩選"過後所剩下的所有電影 (應該是這樣)
       type: [],
@@ -24,18 +27,26 @@ export default defineComponent({
       //點選電影海報後，才出現的電影資料
       selectedMovie: null,
 
-      languageTarget:"zh-TW",
-      
-      // 帳號相關
-      account:"",
-      password:"",
-      userLoggedIn:false,
+      languageTarget: "zh-TW",
 
-      name:"kass",
-      artName:"遊戲",
+      // 帳號相關
+      loginAccount: "",
+      password: "",
+      userLoggedIn: false,
+      artName: "",
 
       //用于存储当前选定电影的图像URL
       carouselImages: [],
+      //用於存帳戶
+      carouselAccount:[],
+      //用於存畫作名稱
+      carouselArt:[],
+
+      //關閉展示區的點點
+      showDots:false,
+
+      //會員or訪客標題
+      pageTitle: '', // 初始化为空
 
       //畫板相關
       canvasWidth: 763, // 畫板的寬度
@@ -89,6 +100,18 @@ export default defineComponent({
   created() {
     // 先取得所有電影類型
     this.getMovieType();
+    this.logincheck();
+    console.log(this.userLoggedIn);
+
+    // 根据用户登录状态设置页面标题文字
+    if (this.userLoggedIn) {
+      this.pageTitle = '會員';
+      console.log(this.pageTitle);
+    } else {
+      this.pageTitle = '訪客';
+      console.log(this.pageTitle);
+      
+    }
   },
   computed: {
     filteredMovies() {
@@ -114,15 +137,16 @@ export default defineComponent({
 
   methods: {
 
-    logincheck(){
-        this.userLoggedIn = Cookies.get('userLoggedIn')
-        if (this.userLoggedIn) {
-          this.account = Cookies.get('account')
-          Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
-          Cookies.set('account', this.account, { expires: 7, path: '/' });
-        }
-      console.log(this.userLoggedIn)
+    logincheck() {
+      this.userLoggedIn = Cookies.get('userLoggedIn') === 'true'
+      if (this.userLoggedIn) {
+        this.loginAccount = Cookies.get('account')
+        Cookies.set('account', this.loginAccount, { expires: 7, path: '/' });
+      }
+      // console.log(this.userLoggedIn)
+      console.log(this.loginAccount)
     },
+
 
     PerformSearch() {
       // 執行搜尋邏輯
@@ -167,6 +191,7 @@ export default defineComponent({
       this.noResultsModal = false; // 確保這行存在並將 noResultsModal 設為 false
       this.searchMode = 'original';
       this.convasIsCloss = false;
+      this.convasIs = false;
       this.canEnterArea = true; // 重置为可以进入区域
     },
 
@@ -192,6 +217,11 @@ export default defineComponent({
     onSizeMouseDown() { this.isSizing = true },
     canvasToImage() {
       let url = this.$refs['sketchpad'].toDataURL("image/png", 1.0)
+
+      //將相對路徑保存到變數
+      // const relativePath = `images/circl${this.count}.png`;
+      // console.log(relativePath);
+
       const link = document.createElement('a')
       link.innerText = 'Download'
       link.href = url
@@ -201,28 +231,28 @@ export default defineComponent({
 
       console.log(this.selectedMovie)
 
-fetch('http://localhost:8080/movie/art/create', {
-  method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    movie: this.selectedMovie.title,
-    movieId: this.selectedMovie.id,
-    artname: this.artName,
-    artlocation: url,
-    account: this.name,
-    
-  })
-})
-  .then(response => response.json())
-  .then(data => {
-    // 處理返回的數據
-    console.log(data);
-  })
-  .catch(error => {
-    console.error('Error fetching data:', error);
-  });
+      fetch('http://localhost:8080/movie/art/create', {
+        method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          movie: this.selectedMovie.title,
+          movieId: this.selectedMovie.id,
+          artname: this.artName,
+          artlocation: url,
+          account: this.loginAccount
+
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          // 處理返回的數據
+          console.log(data);
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
     },
     setWindowEvent() {
       window.addEventListener('mousemove', (event) => {
@@ -350,7 +380,7 @@ fetch('http://localhost:8080/movie/art/create', {
       window.history.forward()
     },
 
-    
+
 
     async getPlayMovie() { //上映中
 
@@ -425,26 +455,49 @@ fetch('http://localhost:8080/movie/art/create', {
         console.log('After slicing:', this.objPlayMovies.length);
         console.log('上映中 PlayMovies:', this.objPlayMovies);
 
-      this.searchResults = this.searchText;
-      this.searchMode = 'result';
-      this.convasIsCloss = true;
-      this.checkCanEnterArea(); // 每次搜索后检查是否可以进入区域
+        this.searchResults = this.searchText;
+        this.searchMode = 'result';
+        
+        if (this.userLoggedIn) {
+          this.convasIsCloss = true;
+          console.log(this.convasIsCloss);
+        }
+        console.log(this.convasIsCloss);
+        this.convasIs = true;
+        this.checkCanEnterArea(); // 每次搜索后检查是否可以进入区域
 
-      // 检查是否有搜索结果
-      if (this.filteredMovies.length === 0) {
+        // 检查是否有搜索结果
+        if (this.filteredMovies.length === 0) {
           // 显示无匹配电影的模态框
           this.noResultsModal = false;
           // 切回原始模式
           this.searchMode = 'original';
           this.convasIsCloss = false;
+          this.convasIs = false;
           return; // 结束方法，不再继续执行
+          
         }
+        if (this.userLoggedIn) {
+          await Swal.fire({
+        title: "會員身分登入!",
+        text: "請點選 電影海報 開始屬於你的創作!",
+        icon: "success"
+      });
+    } else {
+      // 沒有進入區域的 SweetAlert2 彈窗
+      await Swal.fire({
+        title: "訪客身分登入!",
+        text: "如需 創作 請登入會員!!",
+        icon: "success"
+      });
+        }
+        
       } catch (error) {
         // 處理錯誤
         console.error(error);
       }
 
-      
+
 
     },
 
@@ -492,47 +545,56 @@ fetch('http://localhost:8080/movie/art/create', {
       this.maxVisibleCards += 4; // 或其他你希望增加的数量
     },
 
-    searchMovie(movie){
+    searchMovie(movie) {
       this.selectedMovie = movie;
 
       fetch('http://localhost:8080/movie/art/search', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      movie: this.selectedMovie.title,
-      movieId: this.selectedMovie.id,
-      artname: this.artName,
-    })
-  })
-  .then(response => response.json()) 
-  .then(img =>{
-    console.log(img)
-    console.log(img.artList[0].artLocation);
-    
-    this.carouselImages = img.artList.map(art => art.artLocation);
-    console.log(this.carouselImages);
-    // this.carouselImages =img.artList[1].artLocation
-    // this.carouselImages =img.artList[2].artLocation
-    // this.carouselImages =img.artList[3].artLocation
-    ;})
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          movie: this.selectedMovie.title,
+          movieId: this.selectedMovie.id,
+          artname: this.artName,
+        })
+      })
+        .then(response => response.json())
+        .then(img => {
+          console.log(img)
+          console.log(img.artList[0].artLocation);
+          console.log(img.artList[0].artName);
+          console.log(img.artList[0].account);
+
+          this.carouselArt = img.artList.map(art => art.artName);
+          console.log(this.carouselArt);
+
+          this.carouselAccount = img.artList.map(art => art.account);
+          console.log(this.carouselAccount);
+
+          this.carouselImages = img.artList.map(art => art.artLocation);
+          console.log(this.carouselImages);
+          // this.carouselImages =img.artList[1].artLocation
+          // this.carouselImages =img.artList[2].artLocation
+          // this.carouselImages =img.artList[3].artLocation
+          ;
+        })
     },
 
-    
+
     //點選電影海報的展示區 (需要抓他的電影名稱，去展示所有這部電影的作品)
     selectMovie(movie) {
       // if(this.userLoggedIn == true)
       this.selectedMovie = movie;
 
-},
+    },
 
   },
 
 
   async mounted() {
     this.searchResults = this.searchText;
-      this.searchMode = 'original';
+    this.searchMode = 'original';
     this.setCanvas()
     this.currentColor = this.colors[0]
     this.setWindowEvent()
@@ -551,13 +613,16 @@ fetch('http://localhost:8080/movie/art/create', {
           <option value="">All genres</option>  -->
           <!-- <option v-for="genre in movieGenres" :key="genre.id" :value="genre">{{ genre.name }}</option>
         </select> -->
-        <div class="form-floating mb-3">
-          <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="searchText">
+        <div class="" style="background-color:#525f75; width:42%; height:80%; margin-top:90px; margin-left:29%; border-radius:20px;">
+          <h1 style="position:absolute; left:40.8%; top:40%; color:white;">{{ "您的身分為: " + pageTitle }}</h1>
+        <div class="form-floating mb-3" style="position:absolute; left:37.5%; top:47%;">
+          <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="searchText"style="margin-top:70px;" >
           <label class="tbc" for="floatingInput" v-if="!searchText.trim()">搜尋電影...</label>
           <!-- <label class="tbc" for="floatingInput" v-else-if="noResultsModal">無相關電影</label> -->
         </div>
         <!-- <input class="searchMovie1" type="text" v-model="searchText"  placeholder="搜尋電影..."> -->
-        <button @click="getPlayMovie()" class="btn btn-primary allbuttonshoulduseit2">進入區域</button>
+        <button @click="getPlayMovie()" class="btn btn-primary allbuttonshoulduseit2" style="margin-left:7.8%; margin-top:56%;" >進入區域</button>
+      </div>
         <!-- 提示信息 -->
   <!-- <p v-if="!searchText.trim()">請輸入搜索條件</p> //修改1 整合功能510行
   <p v-else-if="noResultsModal">無相關電影</p> -->
@@ -565,9 +630,7 @@ fetch('http://localhost:8080/movie/art/create', {
 
   <!-- Search First Result -->
   <div class="First2" v-if="searchMode === 'result'">
-    <button @click="ResetSearch" style="margin-top:25px" class="btn btn-primary allbuttonshoulduseit">重搜電影</button>
-    <!-- <p>電影名稱: {{ searchResults }}</p> -->
-
+    <button @click="ResetSearch" style="margin-top:4.5rem;" class="btn btn-primary allbuttonshoulduseit">重新搜尋</button>
     <div class="moviePosterAll">
       <div v-for="(movie, index) in visibleFilteredMovies" :key="movie.id" class="card" style="width: 18rem; height: 34.8rem; margin-right:2%; margin-top:2%; margin-bottom:2%;">
         <div class="box" >
@@ -584,16 +647,29 @@ fetch('http://localhost:8080/movie/art/create', {
       </div>
     </div>
     <!-- Learn More 按钮 -->
-    <button v-if="visibleFilteredMovies.length < filteredMovies.length" @click="showMoreCards" class="btn btn-primary allbuttonshoulduseit">Learn More</button>
+    <button v-if="visibleFilteredMovies.length < filteredMovies.length" @click="showMoreCards" class="btn btn-primary allbuttonshoulduseit">查看更多</button>
     <a href="#" class="btn btn-primary allbuttonshoulduseit" style="">回頂部</a>
 </div>
     
 
-    <div  class="bord" id="bord">
+    <div v-show="convasIsCloss"  class="bord" id="bord">
+      <!-- 用來推的div -->
+      <div style="color:rgba(255, 255, 255, 0.01);">232</div>
+      <div><h1 style="margin-top:20px;">創作區</h1></div>
       <div v-if="this.selectedMovie">
-        <p>電影名稱: {{ selectedMovie.title }}</p>
-        <p>電影id: {{ selectedMovie.id }}</p>
-
+        <div class="CreateOoeName">
+          <!-- 用來推的p -->
+          <p style="color:rgb(82, 95, 117);">232</p>
+        <p style="font-size:20pt; margin-top:20px; color:white;">創作主題: {{ selectedMovie.title }}</p>
+        <!-- <p>電影id: {{ selectedMovie.id }}</p> -->
+        <p style="font-size:21pt; margin-top:40px; color:white;">{{"設計者:" + this.loginAccount}}</p>
+        <div style="height:45%; width:75%; margin-left:13%; margin-top:8px; background-color:#7E8EAB; border-radius:20px;">
+          <!-- 用來推的p -->
+          <p style="color:#7E8EAB;">232</p>
+        <p style="font-size:15pt; margin-top:38px;">請為您的作品命名:</p>              
+<textarea rows="1" v-model="artName" required style="width:18vw; border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black; margin-bottom:30px;"></textarea>
+          </div>      
+            </div>
     <!-- 其他的顯示內容... -->
   </div>
  <ul class="navbar " 
@@ -659,20 +735,36 @@ fetch('http://localhost:8080/movie/art/create', {
   </li>
  </ul>
 </div>
-  <div class="Second" v-show="convasIsCloss" id="Second">
-    <p>電影名稱: {{ searchResults }}</p>
+  <div class="Second" v-show="convasIs" id="Second">
+    
+   <!-- 用來推的p -->
+   <p style="color:rgb(255, 255, 255, 0.01);">232</p>
+    <h1 style="margin-top:50px;">展示區</h1>
+    <!-- 用來推的div -->
+    <div style="color:rgba(255, 255, 255, 0.01);">232</div>
+    
     <div class="ShowPoster">
+      
+      
+      <!-- <p>電影名稱: {{ selectedMovie.title }}</p> -->
  <n-carousel
   direction="vertical"
+  :show-dots="showDots"
   dot-placement="right"
   mousewheel
-  style="width: 54%; height: 68.4%"
+  style="width: 610.4px; height: 360px;"
+  class="NColor"
 >
 <div v-for="(image, index) in carouselImages" :key="index">
-    <img class="carousel-img" :src="image" />
+    <img class="carousel-img" :src="image" style=" margin-top:0px; max-width: 100%; max-height: 100%; object-fit: cover;" />
+    <div class="" style="position:absolute; left:3.1%; bottom:1.2%;">
+      <p style=" color:black; background-color:pink; border-radius:20px; margin-bottom:10px; padding: 5px 15px;">{{ "設計者:" + carouselAccount[index] }}</p>
+        <p style=" color:black; background-color:#7e8eab; border-radius:20px; padding: 5px 15px;">{{ "作品名稱:" + carouselArt[index] }}</p>
+      </div>
   </div>
 
 </n-carousel>
+
 </div>
 </div>
 </template>
@@ -680,13 +772,19 @@ fetch('http://localhost:8080/movie/art/create', {
 <style scoped lang="scss">
 .First {
   width: 100vw;
-  height: 100vh;
-  border: 1px solid black;
+  height: 90vh;
+  // border: 1px solid black;
+  background-image: url(../src/picture/CreateBackground.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow-x: hidden; //隱藏水平滾動條
+  overflow-y: hidden; //隱藏垂直滾動條
 
   .searchMovie1 {
     margin-top: 280px;
   }
-  .selectionBoxGenres{
+
+  .selectionBoxGenres {
     margin: 20px 0;
     height: 5%;
     width: 50%;
@@ -702,8 +800,8 @@ fetch('http://localhost:8080/movie/art/create', {
   overflow: auto;
   // width: 100vw;
   // height: 100vh;
-  border: 1px solid black;
-
+  // border: 1px solid black;
+  background-color: rgb(202, 207, 230);
   .moviePosterAll {
     width: 100%;
     // height: 100%;
@@ -714,12 +812,15 @@ fetch('http://localhost:8080/movie/art/create', {
     justify-content: center;
     align-items: center;
 
-    
-  a.btn.btn-primary {
-    text-decoration: none !important; /* 使用 !important 強制覆蓋其他樣式 */
-    border: none; /* 移除邊框 */
-    outline: none; /* 移除聚焦時的藍色框線 */
-}
+
+    a.btn.btn-primary {
+      text-decoration: none !important;
+      /* 使用 !important 強制覆蓋其他樣式 */
+      border: none;
+      /* 移除邊框 */
+      outline: none;
+      /* 移除聚焦時的藍色框線 */
+    }
 
     .box {
       overflow: hidden;
@@ -741,91 +842,126 @@ fetch('http://localhost:8080/movie/art/create', {
     }
 
     box {
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transition: all 0.2s;
-  cursor: pointer;
-}
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
 
-.box1 {
-  position: absolute;
-  left: -110%;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-image: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .5), rgba(255, 255, 255, 0));
-  transform: skew(-30deg);
-  transition: all 1s; /* 將 transition 移至這裡 */
-}
+    .box1 {
+      position: absolute;
+      left: -110%;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-image: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .5), rgba(255, 255, 255, 0));
+      transform: skew(-30deg);
+      transition: all 1s;
+      /* 將 transition 移至這裡 */
+    }
 
-.box:hover .box1 {
-  left: 110%;
-  transform: skew(-30deg) scaleX(2); /* 新增一個 scaleX 可以讓閃爍效果更突顯 */
-}
+    .box:hover .box1 {
+      left: 110%;
+      transform: skew(-30deg) scaleX(2);
+      /* 新增一個 scaleX 可以讓閃爍效果更突顯 */
+    }
 
-.box:hover {
-  transform: translateY(-20px);
-  box-shadow: 0 26px 40px -24px rgb(0 36 100 / 50%);
-}
+    .box:hover {
+      transform: translateY(-20px);
+      box-shadow: 0 26px 40px -24px rgb(0 36 100 / 50%);
+    }
 
-/* 新增的部分，使用 animation 來產生瞬間變化 */
-.box1-shimmer {
-  animation: shimmer 1s;
-}
+    /* 新增的部分，使用 animation 來產生瞬間變化 */
+    .box1-shimmer {
+      animation: shimmer 1s;
+    }
 
-@keyframes shimmer {
-  0%, 100% {
-    transform: skew(-30deg) scaleX(0);
-  }
-  50% {
-    transform: skew(-30deg) scaleX(2);
-  }
-}
+    @keyframes shimmer {
 
-    .card-title { //修改1 調整文字大小
+      0%,
+      100% {
+        transform: skew(-30deg) scaleX(0);
+      }
+
+      50% {
+        transform: skew(-30deg) scaleX(2);
+      }
+    }
+
+    .card-title {
+      //修改1 調整文字大小
       margin-top: 10px;
       font-size: 1.5em;
     }
 
-    .GoShowText { //修改1 修整按鍵大小
+    .GoShowText {
+      //修改1 修整按鍵大小
       position: absolute;
-      bottom: 20px;
-      width: 80%;
-      height: 10%;
-      left: 10%;
-      .goforarea{
+      bottom: 10px;
+      width: 70%;
+      height: 8%;
+      left: 15%;
+
+      .goforarea {
         width: 80%;
         height: 100%;
         font-size: 1.5em;
-        padding: 10px 0 0 0;
+        padding: 2px 0 0 0;
+        // border-radius: 20px;
+       
       }
     }
   }
 }
 
 .bord {
-  height: 100vh;
-  margin-top: 120px;
+  height: 170vh;
+  
+  // margin-top: 50px;
+  background-image: url(../src/picture/bordImage.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  .CreateOoeName{
+    width: 35%;
+    height: 370px;
+    margin-left: 32.5%;
+    margin-top: 20px;
+    background-color: rgb(82, 95, 117);
+    border-radius: 20px;
+  }
 }
 
 .Second {
   width: 100vw;
-  height: 100vh;
-  border: 1px solid black;
+  height: 130vh;
+  // border: 1px solid black;
+  background-image: url(../src/picture/bordImage.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+
+
 
   .ShowPoster {
-    width: 100%;
-    height: 100%;
-    border: 1px solid black;
+    width: 903px;
+    height: 700px;
+    margin-left: 21%;
+    margin-top: 3.5%;
+    // border: 1px solid black;
+  background-image: url(../src/picture/12345603.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+
+  
     position: relative;
 
     .n-carousel {
       position: absolute;
       top: 22%;
       left: 23%;
-      border: 1px solid black;
+      // border: 1px solid black;
     }
 
     .carousel-img {
@@ -850,7 +986,7 @@ fetch('http://localhost:8080/movie/art/create', {
   line-height: 60px;
   height: 75px;
   margin-left: 385px;
-  margin-top: 30px;
+  margin-top: 40px;
   // border: 2px solid #000;
 
   // left: 50%; 
@@ -874,7 +1010,7 @@ fetch('http://localhost:8080/movie/art/create', {
       color: #535353;
       transform: scale(1.1, 1.1);
       cursor: pointer;
-      transition: 0.5s;
+      transition: 0.2s;
       border-radius: 30px;
     }
   }
@@ -987,31 +1123,46 @@ span {
   }
 }
 
-.tb{
-    width: 80%;
-    margin: 0 auto;
-  }
-  .tbc{
-    margin-left: 10%;
-  }
-.allbuttonshoulduseit{ //從這個標籤去找其他修改的地方 修改1
+.tb {
+  width: 400px;
+  height: 30px;
+  margin-left: -0.1%;
+  // margin: 0 auto;
+  // margin-top: 5%;
+}
+
+.tbc {
+  margin-left: 0.5%;
+  margin-top: 18%;
+}
+
+.allbuttonshoulduseit {
+  //從這個標籤去找其他修改的地方 修改1
   width: 30%;
   height: 100%;
   font-size: 1.5em;
-  margin-right:28px;
+  margin-right: 28px;
   margin-bottom: 20px;
   background-color: #7e8eab;
   border: #7e8eab;
 }
-.allbuttonshoulduseit2{
-  width: 30%;
-  height: 7%;
+
+.allbuttonshoulduseit2 {
+  width: 20%;
+  height: 10%;
   font-size: 1.5em;
-  margin-right:28px;
+  margin-right: 28px;
   margin-bottom: 20px;
   background-color: #7e8eab;
   border: #7e8eab;
+}
+
+.NColor{
+  background-color: rgb(255, 255, 255,0.01);
+  margin-left: -8%;
+  margin-top: -8%;
+  // border: 2px solid #C0AC6B !important;
+
 }
 // 待修改，將輸入進來的電影種類改成中文
-
 </style>
