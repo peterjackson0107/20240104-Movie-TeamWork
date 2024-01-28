@@ -37,9 +37,9 @@
                     <td>{{ play }}</td>
                 </tr>
             </div>
-            <button v-if="movieAllTime != ''" type="button" @click="deleteSelected()">刪除</button>
+            <button v-if="movieAllTime.length > 0" type="button" @click="deleteSelected()">刪除</button>
             <div class="checkButton">
-                <button type="button" @click="backSearch()">返回</button>
+                <button type="button" @click="backCreate()">返回</button>
                 <button type="button" @click="create()">送出</button>
             </div>
         </div>
@@ -51,7 +51,7 @@ import axios from 'axios';
 export default {
     data() {
         return {
-            movieInfo: [],
+            //電影相關資訊
             movieId: "",
             movieName: "",
             movieCinema: "選擇影院",
@@ -59,63 +59,92 @@ export default {
             moviePrice: "",
             movieDate: "",
             movieTime: "",
+            //電影撥放時間
+            runtime: "",
+            //全部的時間用push推的
             movieAllTime: [],
-            selectedItems: []
+            //checkbox去篩選要刪掉的物件需要推進去相關的代號
+            selectedItems: [],
+            //上一頁推過來的電影資訊
+            movieInfo: [],
         }
     },
     methods: {
         movieTimeAdd() {
-            // if (this.movieTime !== "") {
-            //     this.movieAllTime.push(this.movieTime);
-            //     this.movieTime = ""; // 推送時間後清除輸入
-            // }
-            if (this.movieTime !== "") {
-                // 將使用者輸入的時間轉換為Date物件
-                const selectedTime = new Date(`2000-01-01 ${this.movieTime}`);
-
-                // 取得小時和分鐘部分
-                let hours = selectedTime.getHours();
-                let minutes = selectedTime.getMinutes();
-
-                // 判斷是否為下午，如果是，將小時部分減去12
-                const period = hours >= 12 ? '下午' : '上午';
-                hours = hours % 12 || 12; // 如果是12點，則保留12
-
-                // 格式化小時和分鐘，確保分鐘顯示為兩位數
-                const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-
-                // 重新賦值給movieTime
-                this.movieTime = `${period} ${hours}:${formattedMinutes}`;
-
-                // 推送時間到movieAllTime陣列
+            // 檢查是否至少相隔一個 runtime
+            if (this.checkTimeGap()) {
                 this.movieAllTime.push(this.movieTime);
-                // 清除輸入框中的時間
-                this.movieTime = "";
+                // 對 movieAllTime 進行排序
+                this.movieAllTime.sort();
+                this.movieTime=""
+            } else {
+                alert("新加入的時間必須至少相隔 " + this.runtime + " 分鐘");
+            }
+        },
+        checkTimeGap() {
+            // 如果 movieAllTime 長度為 0，直接允許加入
+            if (this.movieAllTime.length === 0) {
+                return true;
             }
 
+            const currentTimeMinutes = this.convertTimeToMinutes(this.movieTime);
 
+            // 檢查新加入時間與所有已存在時間的時間差
+            for (const existingTime of this.movieAllTime) {
+                const existingTimeMinutes = this.convertTimeToMinutes(existingTime);
+                const timeDifference = Math.abs(currentTimeMinutes - existingTimeMinutes);
 
-
+                // 如果任何一個時間差小於 runtime，則返回 false
+                if (timeDifference < this.runtime) {
+                    return false;
+                }
+            }
+            // 所有時間差都大於等於 runtime，返回 true
+            return true;
+        },
+        convertTimeToMinutes(time) {
+            // 解析時間為分鐘
+            return parseInt(time.split(":")[0]) * 60 + parseInt(time.split(":")[1]);
         },
         deleteSelected() {
             // 過濾出被勾選的項目並更新 movieAllTime
             this.movieAllTime = this.movieAllTime.filter((play, index) => !this.selectedItems[index]);
-
             // 刪除後清空 selectedItems 陣列
             this.selectedItems = [];
         },
-        backSearch() {
-            this.$router.push('/backSearch')
+        backCreate() {
+            this.$router.push('/backCreate')
         },
         create() {
-            if (this.movieId !== "" &&
-                this.movieName !== "" &&
-                this.movieCinema !== "" &&
-                this.movieArea !== "" &&
-                this.moviePrice !== "" &&
-                this.movieDate !== "" &&
-                this.movieAllTime !== "") {
-                this.movieAllTime = JSON.stringify(this.movieAllTime)
+            // 初始化錯誤訊息
+            let errorMessage = "";
+
+            // 檢查每個必填項目
+            if (this.movieName === "") {
+                errorMessage += "請填寫電影名稱\n";
+            }
+            if (this.movieCinema === "選擇影院") {
+                errorMessage += "請選擇影院\n";
+            }
+            if (this.movieArea === "選擇影廳") {
+                errorMessage += "請選擇影廳\n";
+            }
+            if (isNaN(this.moviePrice) || this.moviePrice === ""||this.moviePrice === "0") {
+                errorMessage += "請填寫有效的價格\n";
+            }
+            if (this.movieDate === "") {
+                errorMessage += "請填寫撥放日期\n";
+            }
+            if (this.movieAllTime.length === 0) {
+                errorMessage += "請填寫影片播放時間\n";
+            }
+
+            // 如果 errorMessage 不為空，表示有未填寫的項目
+            if (errorMessage !== "") {
+                // 顯示提示訊息
+                alert(errorMessage);
+            } else {
+                // 所有必填項目都填寫了，執行後續的操作
                 axios({
                     url: 'http://localhost:8080/movie/movieinfo/create',
                     method: 'POST',
@@ -129,24 +158,28 @@ export default {
                         area: this.movieArea,
                         price: this.moviePrice,
                         onDate: this.movieDate,
-                        onTime: this.movieAllTime
+                        onTime: JSON.stringify(this.movieAllTime)
                     },
                 }).then(res => {
                     console.log(res);
-                    this.movieId = ""
-                    this.movieName = ""
-                    this.movieCinema = ""
-                    this.movieArea = ""
-                    this.moviePrice = ""
-                    this.movieDate = ""
-                    this.movieAllTime = ""
-                    this.$router.push("/backCreate")
-                })
-            } else {
-                // 顯示提示訊息或採取其他處理方式
-                alert("請填寫所有必填項目");
+                    this.$router.push("/backSearch");
+                });
             }
-
+        },
+        searchTime() {
+            axios({
+                method: 'GET',
+                url: `https://api.themoviedb.org/3/movie/${this.movieId}`,
+                params: { language: 'en-US' },
+                headers: {
+                    accept: 'application/json',
+                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNTFmNDFjYjUxYWI2NmIzMjJkMGM1OGZkMDY1Y2I1YSIsInN1YiI6IjY1NThmNzFmMDgxNmM3MDBhYmJlNWQ3MCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.RtMbqdUQUCfdqaLD5SoZ18e4PlSq9Ap4ShtGhmUMm10'
+                }
+            }).then(res => {
+                console.log(res);
+                this.runtime = res.data.runtime
+                console.log(this.runtime);
+            })
         }
     },
     mounted() {
@@ -154,6 +187,7 @@ export default {
         this.movieName = this.movieInfo.movieTitle
         this.movieId = this.movieInfo.movieId
         console.log("Movie Details:", this.movieInfo);
+        this.searchTime()
     },
 }
 </script>

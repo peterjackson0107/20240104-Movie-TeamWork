@@ -7,6 +7,8 @@ import Popper from "vue3-popper";
 import 'bootstrap'
 import { register } from 'swiper/element/bundle';
 import Cookies from 'js-cookie'
+import Swal from 'sweetalert2'
+
 
 
 const app = createApp(App)

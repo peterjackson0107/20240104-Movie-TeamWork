@@ -1,6 +1,5 @@
 <script>
 import { mapState,mapActions } from 'pinia'
-import { ref } from 'vue';
 import { RouterLink } from "vue-router";
 import Cookies from 'js-cookie'
 import auth from '../../store/auth';
@@ -11,10 +10,15 @@ export default {
       cBox:false,
       account:"",
       password:"",
+      accountW:"",
+      passwordW:"",
       setacc:"",
       setpas:"",
       accall:[],
+      email:"",
       show:0,
+      showpwd:0,
+      verify:"",
       cat:{},
       b:"", //修改彈跳視窗
     }
@@ -50,11 +54,21 @@ export default {
         // 處理返回的數據
             console.log(data)
             console.log(data.code)
+            if(data.code == 201){
+              Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
+              Cookies.set('account', this.account, { expires: 7, path: '/' });
+              // Cookies.set('admin', true, { expires: 7, path: '/' });
+              this.login(this.account)
+              this.$router.push("/")
+            }
             if(data.code == 200){
               Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
               Cookies.set('account', this.account, { expires: 7, path: '/' });
               this.login(this.account)
-              console.log("A")
+              // console.log(this.account)
+              console.log(Cookies.get('account'))
+              console.log(this.getAuth)
+              console.log(this.getuser)
               this.$router.push("/")
             }
             if(data.rtnCode == "Account not verify"){
@@ -83,7 +97,58 @@ export default {
     },
     register(){
         this.$router.push("/register")
-    }
+    },
+    forgetpwd(){
+        fetch('http://localhost:8080/movie/user/forgetpwd', {
+            method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email:this.email,
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+        // 處理返回的數據
+            console.log(data)
+            console.log(data.code)
+            if(data.code == 200){
+              this.showpwd = 1
+            }
+            if(data.rtnCode == "Account not verify"){
+              this.b = "請輸入信箱"
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+    },
+    verifyway(){
+      fetch('http://localhost:8080/movie/user/verifypwdAccount', {
+            method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              account:this.accountW,
+              newPassword:this.passwordW,
+              verificationCode:this.verify,
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+        // 處理返回的數據
+            console.log(data)
+            console.log(data.code)
+            if(data.code == 200){
+              alert('修改完成')
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+    },
   },
   mounted(){
     if(localStorage.getItem("keep") == "keep"){
@@ -117,12 +182,57 @@ export default {
                 <input class="leftC" type="checkbox" name="" id="cBox" v-model="cBox">
                 <p class="textC">保留我的登入資訊</p>
             </div>
-            <div class="logbox">
+            <!-- <div class="logbox">
                 <button type="button" class="button" @click="register">註冊帳號</button>
                 <Popper arrow placement="top" class="root" style="margin-top: 0%;" :content="this.b">
                   <button type="button" class="buttonA" @click="log()">登入</button>
                 </Popper>
+            </div> -->
+            <div class="logbox" >
+              <button type="button" class="button" @click="register">註冊帳號</button>
+              <button type="button" class="button" data-bs-toggle="modal" data-bs-target="#additem">忘記帳號</button>
+              <Popper arrow placement="top" class="root" style="margin-top: 0%;" :content="this.b">
+                  <button type="button" class="buttonA" @click="log()">登入</button>
+              </Popper>
             </div>
+            <div class="modal fade" id="additem" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title a" id="exampleModalLabel">請輸入驗證碼</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <p class="textall">信箱</p>
+                  <div class="form-floating mb-3">
+                    <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="this.email" :disabled="this.showpwd==1">
+                    <label class="tbc" for="floatingInput">請在這裡輸入信箱</label>
+                  </div>
+                  <div class="show" v-if="showpwd ==1">
+                    <p class="textall">帳號</p>
+                    <div class="form-floating mb-3">
+                      <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="this.accountW">
+                      <label class="tbc" for="floatingInput">請在這裡輸入帳號</label>
+                    </div>
+                    <p class="textall">新密碼</p>
+                    <div class="form-floating mb-3">
+                      <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="this.passwordW">
+                      <label class="tbc" for="floatingInput">請在這裡輸入新密碼</label>
+                    </div>
+                    <p class="textall">驗整碼</p>
+                    <div class="form-floating mb-3">
+                      <input type="text" class="form-control tb" id="floatingInput" placeholder="" v-model="this.verify">
+                      <label class="tbc" for="floatingInput">在這裡輸入驗整碼</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer" style="justify-content: space-around;">
+                  <button type="button" class="btn btn-primary a" style="background-color: green;border: none;" @click="forgetpwd" :disabled="this.email.length <=7 || this.showpwd==1">送出驗證碼</button>
+                  <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: green;border: none;" @click="verifyway" :disabled="this.verify.length <=7 || this.accountW =='' || this.passwordW ==''">驗證</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
     </div>
 </template>
@@ -138,7 +248,7 @@ export default {
   background-repeat: no-repeat;
   background-size: cover;
   .box{
-  height: 80%;
+  height: 75%;
   width: 40%;
   // margin-top: 2%;
   align-self: center;
@@ -233,4 +343,24 @@ export default {
         font-family:'jf-openhuninn-2.0';
     }
   }
+  .buttonR{
+        width: 9.2vw;
+        height: 7.9vh;
+        border: none;
+        background-color: rgb(176, 182, 213);
+        border-radius: 10px;
+        font-size: 1.5em;
+        font-family:'jf-openhuninn-2.0';
+}
+.buttonS{
+        width: 5.2vw;
+        height: 4.9vh;
+        border: none;
+        background-color: rgb(176, 182, 213);
+        border-radius: 10px;
+        font-size: 1.5em;
+        font-family:'jf-openhuninn-2.0';
+        margin-top: 4%;
+        margin-right: 2%;
+}
 </style>

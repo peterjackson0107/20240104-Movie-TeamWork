@@ -5,6 +5,7 @@ export default defineStore('auth', {
     return{
       isAuthenticated: false,
       user: null,
+      admin:false,
     }
   },
   getters:{
@@ -13,7 +14,7 @@ export default defineStore('auth', {
     },
     getuser (state){
       return state.user
-    }
+    },
   },
   actions:{
     login(user) {

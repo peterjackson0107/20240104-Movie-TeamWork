@@ -88,23 +88,23 @@ export default {
       };
     },
   methods: {
-    initYouTubePlayer() { //影片嵌入相關
-      if (window.YT && window.YT.Player) {
-        // 替换为你的 YouTube 视频 ID
-        const videoId = this.trailerLink;
-        // 创建 YouTube 播放器
-        new window.YT.Player(this.$refs.youtubePlayer, {
-          height: "630",
-          width: "1080",
-          videoId: videoId,
-          playerVars: { autoplay: 0 }, // 1 表示自动播放
-        });
-      } else {
-        // 如果 'Player' 未定义，你可能需要等待 API 加载完成
-        // 或者在其他地方处理 'onYouTubeIframeAPIReady' 事件
-        console.error("YouTube API not ready");
-      }
-    },
+    // initYouTubePlayer() { //影片嵌入相關
+    //   if (window.YT && window.YT.Player) {
+    //     // 替换为你的 YouTube 视频 ID
+    //     const videoId = this.trailerLink;
+    //     // 创建 YouTube 播放器
+    //     new window.YT.Player(this.$refs.youtubePlayer, {
+    //       height: "630",
+    //       width: "1080",
+    //       videoId: videoId,
+    //       playerVars: { autoplay: 0 }, // 1 表示自动播放
+    //     });
+    //   } else {
+    //     // 如果 'Player' 未定义，你可能需要等待 API 加载完成
+    //     // 或者在其他地方处理 'onYouTubeIframeAPIReady' 事件
+    //     console.error("YouTube API not ready");
+    //   }
+    // },
     async getPerson() { //電影相關 上映中 演員*5 + 導演*1
       const options = {
         method: "GET",
@@ -199,7 +199,7 @@ export default {
     },
     logincheck(){
         this.userLoggedIn = Cookies.get('userLoggedIn')
-        if (userLoggedIn) {
+        if (this.userLoggedIn) {
           let a = Cookies.get('account')
           Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
           Cookies.set('account', a, { expires: 7, path: '/' });
@@ -302,9 +302,44 @@ export default {
           this.movieInfo = JSON.parse(data.mypageList.favorit)
           this.mymovie = JSON.parse(data.mypageList.accountMovieList)
           this.moviecomment = data.mypageList.favoritComment
-          console.log(this.movieInfo)
-          console.log(this.mymovie)
+          // console.log(this.movieInfo)
+          // console.log(this.mymovie)
           console.log(this.moviecomment)
+          this.$router.push({
+            name: "mypage",
+            query: {
+              movieInfo: JSON.stringify(this.movieInfo),
+              mymovie: JSON.stringify(this.mymovie),
+              moviecomment: JSON.stringify(this.moviecomment),
+            },
+          });
+          setTimeout(() => {
+            this.movieType = []
+            this.getMovieType();
+            this.getPerson();
+          }, 500);
+          setTimeout(() => {
+            this.getTrailer();
+          }, 1000);
+          setTimeout(() => {
+            this.splitMovies();
+          }, 1000);
+          this.$nextTick(() => {
+                var swiper = new Swiper(this.$refs.mySwiper, {
+                  slidesPerView: 3,
+                  slidesPerColumn: 3,
+                  spaceBetween:10,
+                  autoplay: {
+                    delay: 3000,
+                    disableOnInteraction: false,
+                    stopOnLastSlide: false,
+                  },
+                  loop: false,
+                  observer: true,
+                  observeParents: true,
+                });
+              })
+          this.logincheck()
           }
       })
       .catch(error => {
@@ -329,7 +364,16 @@ export default {
   },
 },
   async mounted() {
-    this.getrandonpage()
+    if(Object.keys(this.$route.query).length !== 0){
+      console.log("A")
+      console.log(this.$route.query)
+      this.movieInfo = this.$route.query.movieInfo
+      this.mymovie = this.$route.query.mymovie
+      this.moviecomment = this.$route.query.moviecomment
+    } else{
+      console.log("B")
+      this.getrandonpage()
+    }
     setTimeout(() => {
       this.getMovieType();
       this.getPerson();
@@ -385,10 +429,10 @@ export default {
           <h1 class="textHeader">{{ this.movieInfo.movieTitle }}</h1>
           <h6 class="textall">{{ this.movieInfo.movieOriginaltitle }}</h6>
           <h2 class="textHeader">上映日期：{{ this.movieInfo.movieReleasedate }}</h2>
-          <!-- <div class="searchaccount">
+          <div class="searchaccount">
             <input type="text" name="" id="" v-model="this.searchaccount">
             <button type="button" @click="searchmypageaccount()" >搜尋特地帳號</button>
-          </div> -->
+          </div>
           <hr />
           <h2>Movie Info</h2>
           <div class="movieDataRight1">
@@ -575,7 +619,7 @@ span, button {
     width: 100vw;
     height: 90vh;
     margin: 0 auto;
-    height: 850px;
+    height: 900px;
     // padding-top: 20px;
     .movieData {
       display: flex;
