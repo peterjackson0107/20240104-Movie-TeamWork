@@ -249,7 +249,7 @@ export default {
       this.commentIndexOrder = indexOrder;
       const dislikeChange = comment.isDisLiked ? -1 : 1;
       comment.dislike += dislikeChange;
-      
+
       fetch("http://localhost:8080/movie/comment/likeAndDislike", {
         method: "POST",
         headers: {
@@ -305,13 +305,13 @@ export default {
         });
     },
     filterComments(commentText) { // 偵測敏感字符
-    const dirtyWords = ['黃牛'];
-    let filteredText = commentText;
-    for (const word of dirtyWords) {
-      const regex = new RegExp(word, 'gi');
-      filteredText = filteredText.replace(regex, '*'.repeat(word.length));
-    }
-    return filteredText;
+      const dirtyWords = ['黃牛'];
+      let filteredText = commentText;
+      for (const word of dirtyWords) {
+        const regex = new RegExp(word, 'gi');
+        filteredText = filteredText.replace(regex, '*'.repeat(word.length));
+      }
+      return filteredText;
     },
     // 後端api
     commentCreate() { // 留言
@@ -457,39 +457,47 @@ export default {
       const movieId = this.movieInfo.movieId;
       const movieName = selectedCinema;
       axios({
-        url: "http://localhost:8080/movie/movieinfo/search",
-        method: "POST",
+        url: 'http://localhost:8080/movie/movieinfo/search',
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         data: {
           movieId: movieId,
-          cinema: movieName,
+          cinema: movieName
         },
-      }).then((res) => {
+      }).then(res => {
+        // 请求成功的回调函数
         console.log(res);
         console.log(res.data.movieInfoList);
-        this.objPlayingMovie = res.data.movieInfoList;
+        // 对获取到的电影信息数组按照 onDate 进行排序
+        this.objPlayingMovie = res.data.movieInfoList.sort((a, b) => {
+          // 将日期字符串转换为 Date 对象进行比较
+          return new Date(a.onDate) - new Date(b.onDate);
+        });
+        // 过滤出小于或等于今天日期的电影信息
+        const today = new Date()
+        this.objPlayingMovie = this.objPlayingMovie.filter(movie => new Date(movie.onDate) >= today);
       });
     },
     gotoSeat(movie) {
       if (!this.selectedTime) {
         // 如果沒有選擇時間，可以進行相應的處理，例如顯示提示訊息
-        alert("請選擇時間");
+        alert('請選擇時間');
         return;
       }
       // 在這裡可以進行相應的處理，比如導航到座位選擇頁面
       this.$router.push({
-        name: "seat",
+        name: 'seat',
         query: {
           movieId: this.movieInfo.movieId,
           movieName: this.movieInfo.movieTitle,
-          cinema: movie.cinema, // 假設影院資訊存儲在 movie 物件中
+          cinema: movie.cinema,  // 假設影院資訊存儲在 movie 物件中
           area: movie.area,
-          price: movie.price, // 假設票價資訊存儲在 movie 物件中
-          playDate: movie.onDate, // 假設撥放日期資訊存儲在 movie 物件中
-          playTime: this.selectedTime, // 已經從下拉選單中選擇的時間
-        },
+          price: movie.price,  // 假設票價資訊存儲在 movie 物件中
+          playDate: movie.onDate,  // 假設撥放日期資訊存儲在 movie 物件中
+          playTime: this.selectedTime,  // 已經從下拉選單中選擇的時間
+        }
       });
     },
   },
@@ -519,38 +527,45 @@ export default {
       </div>
     </div>
   </div>
-  
+
   <div class="body">
     <!-- 電影資料 -->
     <div class="header">
       <div class="movieData">
         <div class="movieDataLeft">
-          <img :src="'https://image.tmdb.org/t/p/w500' + this.movieInfo.moviePoster" alt=""/>
+          <img :src="'https://image.tmdb.org/t/p/w500' + this.movieInfo.moviePoster" alt="" />
         </div>
         <div class="movieDataRight">
           <h1>{{ this.movieInfo.movieTitle }}</h1>
           <h6>{{ this.movieInfo.movieOriginaltitle }}</h6>
           <h2 class="textHeader">
-            上映日期：{{ this.movieInfo.movieReleasedate }}</h2><hr />
+            上映日期：{{ this.movieInfo.movieReleasedate }}</h2>
+          <hr />
           <h2>Movie Info</h2>
           <div class="movieDataRight1">
             <div class="movieDataRight22">
               <div class="type">
                 <h3 class="textHeader">類型：</h3>
-                <span class="textall" style="line-height: 50px" v-for="(item, index) in this.movieType" :key="index">{{ item }}<span v-if="index < this.movieType.length - 1" class="textall" style="font-size: 1em">、</span></span><br />
+                <span class="textall" style="line-height: 50px" v-for="(item, index) in this.movieType" :key="index">{{
+                  item }}<span v-if="index < this.movieType.length - 1" class="textall"
+                    style="font-size: 1em">、</span></span><br />
               </div>
               <div class="director">
                 <h3 class="textHeader">片長：</h3>
-                <span class="textallx" style="line-height: 50px">{{ this.hours == 0 && this.minutes == 0 ? "未知" : this.hours + "h" + this.minutes + "m" }}</span><br />
+                <span class="textallx" style="line-height: 50px">{{ this.hours == 0 && this.minutes == 0 ? "未知" :
+                  this.hours + "h" + this.minutes + "m" }}</span><br />
               </div>
               <div class="director">
                 <h3 class="textHeader">導演：</h3>
-                <span class="textall" style="line-height: 50px" v-for="(item, index) in this.directors" :key="index">{{ item.original_name }}<span v-if="index < this.directors.length - 1">,</span></span><br />
+                <span class="textall" style="line-height: 50px" v-for="(item, index) in this.directors" :key="index">{{
+                  item.original_name }}<span v-if="index < this.directors.length - 1">,</span></span><br />
               </div>
               <div class="casts">
                 <h3 class="textHeader" style="width: 105px; height: 50px">演員：</h3>
                 <div style="width: 90%; display: flex">
-                  <p class="textall" style="line-height: 50px" v-for="(item, index) in this.casts" :key="index">{{ item.original_name }}<span v-if="index < this.casts.length - 1" class="textall" style="font-size: 1em">、</span></p><br/>
+                  <p class="textall" style="line-height: 50px" v-for="(item, index) in this.casts" :key="index">{{
+                    item.original_name }}<span v-if="index < this.casts.length - 1" class="textall"
+                      style="font-size: 1em">、</span></p><br />
                 </div>
               </div>
               <div class="voteAvg">
@@ -559,7 +574,8 @@ export default {
               </div>
               <div class="movieOverview">
                 <h3 class="textHeader" style="width: 105px; height: 50px">簡介：</h3>
-                <p class="textallx" v-if="this.movieInfo.movieOverview" style="width: 90%; line-height: 50px">{{ this.movieInfo.movieOverview }}</p>
+                <p class="textallx" v-if="this.movieInfo.movieOverview" style="width: 90%; line-height: 50px">{{
+                  this.movieInfo.movieOverview }}</p>
                 <p class="textall" v-else>此電影無簡介</p>
               </div>
             </div>
@@ -567,24 +583,30 @@ export default {
         </div>
       </div>
     </div>
-    <hr />
+    <!-- <hr /> -->
 
     <!-- 預告片 -->
-    <div class="middleInfo">
+    <div class="middleInfo" style="margin-top:  50px; ">
       <div class="middle">
-        <div class="mid">電影預告</div>
+        <div class="mid">
+          電影預告
+        </div>
       </div>
       <div class="trailer">
-        <!-- <iframe width="80%" height="500" :src="'https://www.youtube.com/embed/' + trailerLink" frameborder="0" allowfullscreen></iframe> -->
+        <iframe width="80%" height="500" :src="'https://www.youtube.com/embed/' + trailerLink" frameborder="0"
+          allowfullscreen></iframe>
       </div>
       <div class="down">
-        <div class="turn">線上訂票</div>
+        <div class="turn">
+          線上訂票
+        </div>
       </div>
     </div>
-
     <!-- 選擇影城 -->
     <div class="middle1" v-if="this.userLoggedIn">
-      <div class="selectTheater">選取影城</div>
+      <div class="selectTheater">
+        選取影城
+      </div>
       <div class="selectButton">
         <button type="button" @click="cinemaSearch('紹仁戲院')">紹仁戲院</button>
         <button type="button" @click="cinemaSearch('裕峰影城')">裕峰影城</button>
@@ -596,9 +618,7 @@ export default {
         <h5>{{ movie.area }}</h5>
         <select v-model="this.selectedTime">
           <option value="">選擇時間</option>
-          <option v-for="(time, timeIndex) in JSON.parse(movie.onTime)" :key="timeIndex">
-            {{ time }}
-          </option>
+          <option v-for="(time, timeIndex) in JSON.parse(movie.onTime)" :key="timeIndex">{{ time }}</option>
         </select>
         <button type="button" @click="gotoSeat(movie)">選取位置</button>
       </div>
@@ -612,31 +632,33 @@ export default {
           <!-- 暴雷區的開關 -->
           <div class="mb-3">
             <div class="form-check form-switch">
-              <input v-model="baoleiButton" @input="toggleBaolei" class="form-check-input" type="checkbox" id="baoleiSwitch"/>
+              <input v-model="baoleiButton" @input="toggleBaolei" class="form-check-input" type="checkbox"
+                id="baoleiSwitch" />
               <label class="form-label">暴雷按鈕</label>
             </div>
           </div>
           <!-- 留言區 -->
           <div :style="{ filter: blurredArea && !baoleiButton ? 'blur(5px)' : 'none', }">
-          <!-- 排序下拉框 -->
-          <div class="mb-3">
-            <span>{{ this.comments.length + "件留言" }}</span>
-            <select v-model="sortOrder" id="sortSelect">
-              <option value="sort">排序</option>
-              <option value="latest">最新留言</option>
-              <option value="likes">最多喜歡</option>
-            </select>
-          </div>
-          <!-- 新增留言 -->
-          <div class="mt-4">
-            <div class="mb-3" v-if="this.userLoggedIn">
-              <label for="commentInput" class="form-label"><span>新增留言</span></label>
-              <textarea rows="1" v-model="commentText" class="form-control" name="comment" id="commentInput" required style="border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
-              <div style="text-align: end">
-                <button type="submit" class="btn btn-outline-dark" @click="commentCreate">留言</button>
+            <!-- 排序下拉框 -->
+            <div class="mb-3">
+              <span>{{ this.comments.length + "件留言" }}</span>
+              <select v-model="sortOrder" id="sortSelect">
+                <option value="sort">排序</option>
+                <option value="latest">最新留言</option>
+                <option value="likes">最多喜歡</option>
+              </select>
+            </div>
+            <!-- 新增留言 -->
+            <div class="mt-4">
+              <div class="mb-3" v-if="this.userLoggedIn">
+                <label for="commentInput" class="form-label"><span>新增留言</span></label>
+                <textarea rows="1" v-model="commentText" class="form-control" name="comment" id="commentInput" required
+                  style="border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
+                <div style="text-align: end">
+                  <button type="submit" class="btn btn-outline-dark" @click="commentCreate">留言</button>
+                </div>
               </div>
             </div>
-          </div>
             <!-- 遍歷並顯示留言 -->
             <div v-for="comment in sortComments" :key="comment.number" class="card mb-2">
               <!-- 留言內容 -->
@@ -644,34 +666,49 @@ export default {
                 <span>{{ "@" + comment.account }}</span>
                 <small class="text-muted">{{ this.commentTimeDif(comment.commentTime) }}</small>
                 <!-- 編輯按鈕 -->
-                <button v-if="userLoggedIn && !comment.editing && this.loginAccount==comment.account" @click="startEditing(comment)" class="btn btn-link" style="margin-left: 10px; text-decoration: none">編輯</button>
+                <button v-if="userLoggedIn && !comment.editing && this.loginAccount == comment.account"
+                  @click="startEditing(comment)" class="btn btn-link"
+                  style="margin-left: 10px; text-decoration: none">編輯</button>
                 <!-- 保存按鈕 -->
-                <button v-if="comment.editing" type="submit" class="btn btn-link" @click="saveEdit( comment, comment.commentIndex, comment.commentIndexIndex ) " style="margin-left: 10px; text-decoration: none" required>儲存</button>
+                <button v-if="comment.editing" type="submit" class="btn btn-link"
+                  @click="saveEdit(comment, comment.commentIndex, comment.commentIndexIndex)"
+                  style="margin-left: 10px; text-decoration: none" required>儲存</button>
                 <!-- 刪除按鈕 -->
-                <button v-if="userLoggedIn && !comment.editing && this.loginAccount==comment.account" @click="commentDeleteFather(comment, comment.commentIndex)" class="btn btn-link" style="text-decoration: none">刪除</button><br />
+                <button v-if="userLoggedIn && !comment.editing && this.loginAccount == comment.account"
+                  @click="commentDeleteFather(comment, comment.commentIndex)" class="btn btn-link"
+                  style="text-decoration: none">刪除</button><br />
                 <!-- 留言內容 -->
                 <span>{{ filterComments(comment.commentText) }}</span>
                 <!-- 編輯模式下顯示編輯框 -->
-                <textarea v-if="comment.editing" v-model="comment.editingText" rows="1" class="form-control" name="comment" id="commentInput" required style="border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea><br />
+                <textarea v-if="comment.editing" v-model="comment.editingText" rows="1" class="form-control"
+                  name="comment" id="commentInput" required
+                  style="border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea><br />
                 <!-- 按讚 -->
-                <button v-if="userLoggedIn" @click="likeButton( comment, comment.commentIndex, comment.commentIndexIndex )" class="btn btn-outline-primary" style="border: 0">
+                <button v-if="userLoggedIn"
+                  @click="likeButton(comment, comment.commentIndex, comment.commentIndexIndex)"
+                  class="btn btn-outline-primary" style="border: 0">
                   <i class="fa-regular fa-thumbs-up"></i>
                   {{ comment.favorite }}
                 </button>
-                <button v-if="userLoggedIn" @click="dislikeButton( comment, comment.commentIndex, comment.commentIndexIndex )" class="btn btn-outline-danger" style="border: 0">
-                <i class="fa-regular fa-thumbs-down"></i>
+                <button v-if="userLoggedIn"
+                  @click="dislikeButton(comment, comment.commentIndex, comment.commentIndexIndex)"
+                  class="btn btn-outline-danger" style="border: 0">
+                  <i class="fa-regular fa-thumbs-down"></i>
                   {{ comment.dislike }}
                 </button>
 
                 <!-- 回覆按鈕 -->
-                <button v-if="this.userLoggedIn" @click="chooseComment(comment, comment.commentIndex)" class="btn btn-link" style="text-decoration: none; margin-left: 5px">回覆</button>
+                <button v-if="this.userLoggedIn" @click="chooseComment(comment, comment.commentIndex)"
+                  class="btn btn-link" style="text-decoration: none; margin-left: 5px">回覆</button>
                 <!-- 回覆留言的表單 -->
                 <form v-if="comment.replying" @submit.prevent="addReply(comment, comment.replyText)" class="mt-2">
                   <div class="mb-3">
                     <label for="replyInput" class="form-label">回覆留言</label>
-                    <textarea rows="1" v-model="replyText" class="form-control" id="replyInput" style="border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
+                    <textarea rows="1" v-model="replyText" class="form-control" id="replyInput"
+                      style="border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
                   </div>
-                  <button v-if="this.userLoggedIn" type="submit" class="btn btn-outline-dark" @click="commentCreateChild()">回覆</button>
+                  <button v-if="this.userLoggedIn" type="submit" class="btn btn-outline-dark"
+                    @click="commentCreateChild()">回覆</button>
                   <button type="button" class="btn btn-outline-dark" @click="cancelReply(comment)">取消</button>
                 </form>
 
@@ -683,21 +720,30 @@ export default {
                         <span>{{ "@" + item.account }}</span>
                         <small class="text-muted">{{ this.commentTimeDif(item.commentTime) }}</small>
                         <!-- 編輯按鈕 -->
-                        <button v-if="userLoggedIn && !item.editing && this.loginAccount==item.account" @click="startEditing(item)" class="btn btn-link" style="margin-left: 10px; text-decoration: none">編輯</button>
+                        <button v-if="userLoggedIn && !item.editing && this.loginAccount == item.account"
+                          @click="startEditing(item)" class="btn btn-link"
+                          style="margin-left: 10px; text-decoration: none">編輯</button>
                         <!-- 保存按鈕 -->
-                        <button v-if="item.editing" @click="saveEdit( item, item.commentIndex, item.commentIndexIndex )" class="btn btn-link" style="margin-left: 10px; text-decoration: none">儲存</button>
+                        <button v-if="item.editing" @click="saveEdit(item, item.commentIndex, item.commentIndexIndex)"
+                          class="btn btn-link" style="margin-left: 10px; text-decoration: none">儲存</button>
                         <!-- 刪除按鈕 -->
-                        <button v-if="userLoggedIn && !item.editing && this.loginAccount==item.account" @click="commentDeleteChild( item, item.commentIndex, item.commentIndexIndex )" class="btn btn-link" style="text-decoration: none">刪除</button><br />
+                        <button v-if="userLoggedIn && !item.editing && this.loginAccount == item.account"
+                          @click="commentDeleteChild(item, item.commentIndex, item.commentIndexIndex)"
+                          class="btn btn-link" style="text-decoration: none">刪除</button><br />
                         <!-- 回覆內容 -->
-                        <span>{{ filterComments(item.commentText) }}</span><br/>
+                        <span>{{ filterComments(item.commentText) }}</span><br />
                         <!-- 編輯模式下顯示編輯框 -->
-                        <textarea v-if="item.editing" v-model="item.editingText" rows="1" class="form-control" required style="border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
+                        <textarea v-if="item.editing" v-model="item.editingText" rows="1" class="form-control" required
+                          style="border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"></textarea>
                         <!-- 按讚 -->
-                        <button v-if="userLoggedIn" @click="likeButton( item, item.commentIndex, item.commentIndexIndex )" class="btn btn-outline-primary" style="border: 0">
+                        <button v-if="userLoggedIn" @click="likeButton(item, item.commentIndex, item.commentIndexIndex)"
+                          class="btn btn-outline-primary" style="border: 0">
                           <i class="fa-regular fa-thumbs-up"></i>
                           {{ item.favorite }}
                         </button>
-                        <button v-if="userLoggedIn" @click="dislikeButton( item, item.commentIndex, item.commentIndexIndex )" class="btn btn-outline-danger" style="border: 0">
+                        <button v-if="userLoggedIn"
+                          @click="dislikeButton(item, item.commentIndex, item.commentIndexIndex)"
+                          class="btn btn-outline-danger" style="border: 0">
                           <i class="fa-regular fa-thumbs-down"></i>
                           {{ item.dislike }}
                         </button>
@@ -957,13 +1003,11 @@ button {
         align-items: center;
         border-left: 1px solid rgb(230, 230, 230);
         border-right: 1px solid rgb(230, 230, 230);
-        background: repeating-linear-gradient(
-          -45deg,
-          rgba(0, 0, 0, 0.067),
-          rgba(0, 0, 0, 0.067) 2px,
-          rgba(0, 0, 0, 0) 2px,
-          rgba(0, 0, 0, 0) 4px
-        );
+        background: repeating-linear-gradient(-45deg,
+            rgba(0, 0, 0, 0.067),
+            rgba(0, 0, 0, 0.067) 2px,
+            rgba(0, 0, 0, 0) 2px,
+            rgba(0, 0, 0, 0) 4px);
       }
     }
 
@@ -997,13 +1041,11 @@ button {
         align-items: center;
         border-left: 1px solid rgb(230, 230, 230);
         border-right: 1px solid rgb(230, 230, 230);
-        background: repeating-linear-gradient(
-          -45deg,
-          rgba(0, 0, 0, 0.067),
-          rgba(0, 0, 0, 0.067) 2px,
-          rgba(0, 0, 0, 0) 2px,
-          rgba(0, 0, 0, 0) 4px
-        );
+        background: repeating-linear-gradient(-45deg,
+            rgba(0, 0, 0, 0.067),
+            rgba(0, 0, 0, 0.067) 2px,
+            rgba(0, 0, 0, 0) 2px,
+            rgba(0, 0, 0, 0) 4px);
       }
     }
   }
@@ -1095,11 +1137,11 @@ button {
     padding: 5px;
   }
 }
+
 .textallx {
   font-family: "jf-openhuninn-2.0";
   font-size: 1.5em;
   margin: 0;
   overflow: auto;
-  max-height: 250px;
-}
-</style>
+  max-height: 190px;
+}</style>

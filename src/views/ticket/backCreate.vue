@@ -21,8 +21,8 @@
             <thead>
                 <tr class="index">
                     <th>電影海報</th>
-                    <th>電影ID</th>
                     <th>電影名稱</th>
+                    <!-- <th>電影類型</th> -->
                     <th>電影描述</th>
                     <th>上映日期</th>
                     <th>新增</th>
@@ -33,9 +33,9 @@
                     <td style="width: 200px;"><img :src="'https://image.tmdb.org/t/p/w342' + movie.poster_path" alt=""
                             @click="gotoSeat(movie)" style="width: 200px; ">
                     </td>
-                    <td>{{ movie.id }}</td>
                     <td>{{ movie.title }}</td>
-                    <td style=" width: 35vw;">{{truncateOverview( movie.overview === "" ? "尚未有簡介" :
+                    <!-- <td>{{ getType(movie) }}</td> -->
+                    <td style=" width: 35vw;">{{ truncateOverview(movie.overview === "" ? "尚未有簡介" :
                         movie.overview) }}</td>
                     <td>{{ movie.release_date }}</td>
                     <td><button class="create" type="button" @click="gotoSeat(movie)"
@@ -61,6 +61,8 @@ export default {
             objPlayMovies: [],
             movieName: "",
             onDate: "",
+            //類型
+            objtype: [],
             //上下頁以及一頁有幾個的變數
             currentPage: 1,
             pageSize: 10,
@@ -220,9 +222,49 @@ export default {
                 console.error(error);
             }
         },
+
+        //尚未解決
+        // getMovieType() { //電影類型
+        //     const options = {
+        //         method: "GET",
+        //         headers: {
+        //             accept: "application/json",
+        //             Authorization:
+        //                 "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww",
+        //         },
+        //     };
+        //     fetch(
+        //         "https://api.themoviedb.org/3/genre/movie/list?language=en",
+        //         options
+        //     )
+        //         .then((response) => response.json())
+        //         .then((response) => {
+        //             (this.type = response.genres),
+        //                 console.log(this.type);
+        //             this.objtype = this.type;
+        //         })
+        //         .catch((err) => console.error(err));
+        // },
+        // getType(movie) {
+        //     console.log(movie.genre_ids[1]);
+        //     console.log();
+        //     for (let i = 0; i < movie.genre_ids.length; i++) {
+        //         for (let j = 0; j < this.objtype.length; j++)
+        //             if (parseInt(movie.genre_ids[i]) === this.objtype[j].id) {
+        //                 types.push(this.objPlayMovies[j].name);
+        //             }
+        //         // 在這裡將電影類型映射到 movieTypeMap 中
+        //         this.$set(this.movieTypeMap, movie.id, types);
+
+        //         // 返回電影類型
+        //         return types;
+        //     }
+        // },
+
     },
     mounted() {
         this.getPlayMovie()
+        this.getMovieType()
     },
     computed: {
         displayedMovies() {
@@ -393,4 +435,5 @@ export default {
         }
 
     }
-}</style>
+}
+</style>

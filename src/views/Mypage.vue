@@ -53,6 +53,7 @@ export default {
       moviecomment:"",
       pages:[],
       searchaccount:"",
+      account:""
     };
   },
   computed: {
@@ -277,6 +278,7 @@ export default {
           this.movieInfo = JSON.parse(data.pageList[randomIndex].favorit)
           this.mymovie = JSON.parse(data.pageList[randomIndex].accountMovieList)
           this.moviecomment = data.pageList[randomIndex].favoritComment
+          this.account = data.pageList[randomIndex].account
           console.log(this.movieInfo)
           console.log(this.mymovie)
           console.log(this.moviecomment)
@@ -287,6 +289,8 @@ export default {
       });
   },
   searchmypageaccount(){
+    this.account = this.searchaccount
+    console.log(this.account)
     fetch('http://localhost:8080/movie/mypage/search'+ '?' + "account=" + this.searchaccount, {
         method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
         headers: {
@@ -418,6 +422,7 @@ export default {
     <!-- 電影資料 -->
     <div class="header">
       <!-- <button type="button" @click="goback">去後台</button> -->
+      <p class="textHeader" style="margin: 1% auto 1% auto; width: 60%; background-color: rgb(176, 182, 213); border-radius: 20px;">目前頁面：{{ this.account }}</p>
       <div class="movieData">
         <!-- <img :src="'https://image.tmdb.org/t/p/w342' + this.movieInfo.movieBack " alt="" style="width: 100vw; height: 100vh; opacity: 0.2; position: fixed; top: 0; left: 0;"><br> -->
         <div class="movieDataLeft">
@@ -431,7 +436,7 @@ export default {
           <h2 class="textHeader">上映日期：{{ this.movieInfo.movieReleasedate }}</h2>
           <div class="searchaccount">
             <input type="text" name="" id="" v-model="this.searchaccount">
-            <button type="button" @click="searchmypageaccount()" >搜尋特地帳號</button>
+            <button type="button" @click="searchmypageaccount()" class="button">搜尋個人頁帳號</button>
           </div>
           <hr />
           <h2>Movie Info</h2>
@@ -740,4 +745,16 @@ span, button {
 .grid-item {
   /* Add your custom styles for each grid item here */
 }
+
+.button{
+        width: 11.2vw;
+        height: 5.9vh;
+        border: none;
+        background-color: rgb(176, 182, 213);
+        border-radius: 10px;
+        font-size: 1.5em;
+        font-family:'jf-openhuninn-2.0';
+        margin-top: 2.5%;
+        margin-left: 2%;
+    }
 </style>

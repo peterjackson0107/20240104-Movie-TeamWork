@@ -4,6 +4,7 @@ import { RouterLink } from "vue-router";
 import Cookies from 'js-cookie'
 import auth from '../../store/auth';
 import Popper from "vue3-popper";
+import Swal from 'sweetalert2'
 export default {
   data() {
     return{
@@ -29,6 +30,7 @@ export default {
   components: {
     RouterLink,
     Popper,
+    Swal,
   },
   methods:{
     ...mapActions(auth,["login","logout"]),
@@ -142,7 +144,7 @@ export default {
             console.log(data)
             console.log(data.code)
             if(data.code == 200){
-              alert('修改完成')
+              Swal.fire('修改完成');
             }
         })
         .catch(error => {
