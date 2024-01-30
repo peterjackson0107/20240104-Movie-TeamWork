@@ -183,6 +183,10 @@ export default defineComponent({
       console.log('Performing search:', this.searchText);
     },
     ResetSearch() {
+      // 重置相關數據
+      this.carouselImages = [];
+      this.carouselAccount = [];
+      this.carouselArt = [];
       // 重置搜尋相關資料
       this.searchText = '';
       this.searchResults = '';
@@ -225,7 +229,7 @@ export default defineComponent({
       const link = document.createElement('a')
       link.innerText = 'Download'
       link.href = url
-      link.download = `circl${this.count}`
+      // link.download = `circl${this.count}`
       this.count++
       link.click()
 
@@ -247,8 +251,21 @@ export default defineComponent({
       })
         .then(response => response.json())
         .then(data => {
+          
           // 處理返回的數據
           console.log(data);
+
+          // 保存成功后刷新页面
+          Swal.fire({
+            title: "作品已保存!",
+            text: "請『重新搜尋』查看你的創作!",
+            icon: "success",
+            showCloseButton:true,
+            allowOutsideClick:false,
+            showConfirmButton: false, // 不显示确认按钮
+        }).then(() => {
+            window.location.reload();
+        });
         })
         .catch(error => {
           console.error('Error fetching data:', error);
@@ -276,7 +293,7 @@ export default defineComponent({
               break;
             case 'eraser':
               this.draw((ctx) => {
-                ctx.strokeStyle = this.backgroundColor
+                ctx.strokeStyle = '#f6fbff';
                 ctx.moveTo(this.tempPosition.x, this.tempPosition.y)
                 ctx.lineTo(pos.x, pos.y)
               })
@@ -479,16 +496,23 @@ export default defineComponent({
         }
         if (this.userLoggedIn) {
           await Swal.fire({
-        title: "會員身分登入!",
-        text: "請點選 電影海報 開始屬於你的創作!",
-        icon: "success"
+        title: "會員身分進入!",
+        text: "請點選『電影海報』開始創作!",
+        icon: "success",
+        showCloseButton:true,
+        allowOutsideClick:false,
+        showConfirmButton: false, // 不显示确认按钮
+
       });
     } else {
       // 沒有進入區域的 SweetAlert2 彈窗
       await Swal.fire({
-        title: "訪客身分登入!",
-        text: "如需 創作 請登入會員!!",
-        icon: "success"
+        title: "訪客身分進入!",
+        text: "如需『創作』請登入會員!",
+        icon: "success",
+        showCloseButton:true,
+        allowOutsideClick:false,
+        showConfirmButton: false, // 不显示确认按钮
       });
         }
         
@@ -546,6 +570,11 @@ export default defineComponent({
     },
 
     searchMovie(movie) {
+      // 重置相關數據
+      this.carouselImages = [];
+      this.carouselAccount = [];
+      this.carouselArt = [];
+      
       this.selectedMovie = movie;
 
       fetch('http://localhost:8080/movie/art/search', {
@@ -613,15 +642,15 @@ export default defineComponent({
           <option value="">All genres</option>  -->
           <!-- <option v-for="genre in movieGenres" :key="genre.id" :value="genre">{{ genre.name }}</option>
         </select> -->
-        <div class="" style="background-color:#525f75; width:42%; height:80%; margin-top:90px; margin-left:29%; border-radius:20px;">
+        <div class="" style="background-color:#525f75; width:35%; height:50%; margin-top:170px; margin-left:33%; border-radius:20px;">
           <h1 style="position:absolute; left:40.8%; top:40%; color:white;">{{ "您的身分為: " + pageTitle }}</h1>
-        <div class="form-floating mb-3" style="position:absolute; left:37.5%; top:47%;">
-          <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="searchText"style="margin-top:70px;" >
+        <div class="form-floating mb-3" style="position:absolute; left:37.5%; top:41.5%;">
+          <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="searchText"style="margin-top:70px;font-size: 20px;" >
           <label class="tbc" for="floatingInput" v-if="!searchText.trim()">搜尋電影...</label>
           <!-- <label class="tbc" for="floatingInput" v-else-if="noResultsModal">無相關電影</label> -->
         </div>
         <!-- <input class="searchMovie1" type="text" v-model="searchText"  placeholder="搜尋電影..."> -->
-        <button @click="getPlayMovie()" class="btn btn-primary allbuttonshoulduseit2" style="margin-left:7.8%; margin-top:56%;" >進入區域</button>
+        <button @click="getPlayMovie()" class="btn btn-primary allbuttonshoulduseit2" style="margin-left:2.5%; margin-top:40%; height:50px" >進入區域</button>
       </div>
         <!-- 提示信息 -->
   <!-- <p v-if="!searchText.trim()">請輸入搜索條件</p> //修改1 整合功能510行
@@ -630,7 +659,12 @@ export default defineComponent({
 
   <!-- Search First Result -->
   <div class="First2" v-if="searchMode === 'result'">
-    <button @click="ResetSearch" style="margin-top:4.5rem;" class="btn btn-primary allbuttonshoulduseit">重新搜尋</button>
+    <div style="display:flex;  justify-content: center; width:100vw">
+    <div class="lell" style="width: 230px; height:169px; margin-right:110px; margin-top:6px;"><p style="margin-top:52px; margin-left:11px;">點擊『前往展示區』<br>觀看完成作品</p></div>
+    <button @click="ResetSearch" style="margin-top:4.5rem; margin-right:54px;" class="btn btn-primary allbuttonshoulduseit">重新搜尋</button>
+    <div class="rerr" v-show="convasIsCloss" style="width: 255px; height:173px; margin-left:70px;"><p style="margin-top:57px; margin-right:15px;">點選『電影海報』<br>可進行創作</p></div>
+    <div class="rerr" v-show="!convasIsCloss" style="width: 255px; height:173px; margin-left:70px;"><p style="margin-top:57px; margin-right:15px;">請先『登入會員』<br>才可進行創作</p></div>
+      </div>
     <div class="moviePosterAll">
       <div v-for="(movie, index) in visibleFilteredMovies" :key="movie.id" class="card" style="width: 18rem; height: 34.8rem; margin-right:2%; margin-top:2%; margin-bottom:2%;">
         <div class="box" >
@@ -662,7 +696,7 @@ export default defineComponent({
           <p style="color:rgb(82, 95, 117);">232</p>
         <p style="font-size:20pt; margin-top:20px; color:white;">創作主題: {{ selectedMovie.title }}</p>
         <!-- <p>電影id: {{ selectedMovie.id }}</p> -->
-        <p style="font-size:21pt; margin-top:40px; color:white;">{{"設計者:" + this.loginAccount}}</p>
+        <p style="font-size:21pt; margin-top:40px; color:white;">{{"創作者:" + this.loginAccount}}</p>
         <div style="height:45%; width:75%; margin-left:13%; margin-top:8px; background-color:#7E8EAB; border-radius:20px;">
           <!-- 用來推的p -->
           <p style="color:#7E8EAB;">232</p>
@@ -698,7 +732,7 @@ export default defineComponent({
  <canvas ref="sketchpad" 
    @mousedown="onCanvasMouseDown"
    @mouseup="onCanvasMouseUp"
-   :style="`background-color:${backgroundColor}; border: 2px solid #000; `"
+   style="background-color: #f6fbff; border: 2px solid #000;"
    ></canvas>
 
  <ul class="toolbar" :class="{hideToolBar}">
@@ -747,7 +781,7 @@ export default defineComponent({
       
       
       <!-- <p>電影名稱: {{ selectedMovie.title }}</p> -->
- <n-carousel
+ <n-carousel v-if="carouselImages.length > 0"
   direction="vertical"
   :show-dots="showDots"
   dot-placement="right"
@@ -758,13 +792,17 @@ export default defineComponent({
 <div v-for="(image, index) in carouselImages" :key="index">
     <img class="carousel-img" :src="image" style=" margin-top:0px; max-width: 100%; max-height: 100%; object-fit: cover;" />
     <div class="" style="position:absolute; left:3.1%; bottom:1.2%;">
-      <p style=" color:black; background-color:pink; border-radius:20px; margin-bottom:10px; padding: 5px 15px;">{{ "設計者:" + carouselAccount[index] }}</p>
-        <p style=" color:black; background-color:#7e8eab; border-radius:20px; padding: 5px 15px;">{{ "作品名稱:" + carouselArt[index] }}</p>
+      <p style=" color:black; background-color:pink; border-radius:20px; margin-bottom:10px; padding: 5px 15px;">{{ "創作者:" + carouselAccount[index] }}</p>
+        <p style=" color:black; background-color:#a4b3cc; border-radius:20px; padding: 5px 15px;">{{ "作品名稱:" + carouselArt[index] }}</p>
       </div>
   </div>
 
 </n-carousel>
-
+<div v-else>
+  <!-- 用來推的p -->
+  <p style="color:rgba(255, 255, 255, 0.01);">232</p>
+    <h1 style="font-size:20pt; margin-top:215px; margin-right:15px;">未點選『前往展示區』或『暫無作品』</h1>
+  </div>
 </div>
 </div>
 </template>
@@ -772,13 +810,13 @@ export default defineComponent({
 <style scoped lang="scss">
 .First {
   width: 100vw;
-  height: 90vh;
+  height: 92vh;
   // border: 1px solid black;
   background-image: url(../src/picture/CreateBackground.png);
   background-repeat: no-repeat;
   background-size: cover;
-  overflow-x: hidden; //隱藏水平滾動條
-  overflow-y: hidden; //隱藏垂直滾動條
+  overflow-x: hidden; //隱藏水平滾動條.
+  overflow-y: hidden; //隱藏垂直滾動條.
 
   .searchMovie1 {
     margin-top: 280px;
@@ -1124,16 +1162,16 @@ span {
 }
 
 .tb {
-  width: 400px;
-  height: 30px;
-  margin-left: -0.1%;
+  width: 350px;
+  height: 20px;
+  margin-left: 8%;
   // margin: 0 auto;
   // margin-top: 5%;
 }
 
 .tbc {
-  margin-left: 0.5%;
-  margin-top: 18%;
+  margin-left: 8%;
+  margin-top: 20%;
 }
 
 .allbuttonshoulduseit {
@@ -1151,7 +1189,7 @@ span {
   width: 20%;
   height: 10%;
   font-size: 1.5em;
-  margin-right: 28px;
+  // margin-right: 28px;
   margin-bottom: 20px;
   background-color: #7e8eab;
   border: #7e8eab;
@@ -1165,4 +1203,16 @@ span {
 
 }
 // 待修改，將輸入進來的電影種類改成中文
+
+.lell{
+  background-image: url(../src/picture/020202.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.rerr{
+  background-image: url(../src/picture/566.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+}
 </style>

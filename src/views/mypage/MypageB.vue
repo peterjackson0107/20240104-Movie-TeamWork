@@ -374,7 +374,11 @@ export default{
     // border: 5px solid slategray;
     .number{
       width: 14.2%;
+      height: 300px;
       border: 1px solid slategray;
+      padding: 130px 0 0 0;
+      line-height: 30px;
+      
     }
     .name{
       width: 20%;
@@ -383,6 +387,7 @@ export default{
       border: 1px solid slategray;
     }
     .start{
+      padding: 10px 20px 0 20px;
       width: 85%;
       height: 300px;
       border: 1px solid slategray;
@@ -390,6 +395,7 @@ export default{
       font-size: 1.5em;
       text-align:center;
       overflow:scroll;
+      line-height: 40px;
       // white-space: pre-wrap;
     }
     .result{

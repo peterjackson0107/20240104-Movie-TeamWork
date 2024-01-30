@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { RouterLink } from "vue-router";
 import Cookies from 'js-cookie'
 import Popper from "vue3-popper";
+import Swal from 'sweetalert2'
 export default {
   data() {
     return{
@@ -31,12 +32,17 @@ export default {
       changeemail:"",
       emailboxA:["@gmail.com","@yahoo.com.tw"],
       emailboxTarget:"",
-      buylist:[]
+      buylist:[],
+      holdname:"",
+      holdcardnumber:"",
+      holdcarddate:"",
+      holdcardpass:"",
     }
   },
   components: {
     RouterLink,
     Popper,
+    Swal,
   },
   methods:{
     clickC(){
@@ -141,7 +147,7 @@ export default {
                     body: JSON.stringify({
                     account:this.loginAccount,
                     password:this.password,
-                    newPassword:this.changeName,
+                    name:this.changeName,
                     phone:this.changephone,
                     email:(this.changeemail + this.emailboxTarget),
                     })
@@ -180,9 +186,9 @@ export default {
                     console.log(data)
                     console.log(data.code)
                     if(data.code = 200){
-                      alert('修改完成')
+                      Swal.fire('修改完成')
                     } else(
-                      alert('修改失敗')
+                      Swal.fire('修改失敗')
                     )
                 })
                 .catch(error => {
@@ -203,7 +209,7 @@ export default {
                 .then(data => {
                 // 處理返回的數據
                     console.log(data)
-                    console.log(data.code)
+                    // console.log(data.code)
                     if(data.code = 200){
                     this.buylist = data.buyInfoList
                     this.selectbar = 2
@@ -222,10 +228,105 @@ export default {
     gotobackcreate(){
       this.$router.push("/backSearch")
     },
+    deleteticket(index){
+      console.log(index)
+      fetch('http://localhost:8080/movie/buyinfo/delete', {
+        method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          number:index,
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+      // 處理返回的數據
+      console.log(data)
+      console.log(data.code)
+      if(data.code = 200){
+        let indexToDelete = this.buylist.findIndex(obj => obj.number === index);
+        if (indexToDelete !== -1) {
+        // 从数组中删除该对象
+        this.buylist.splice(indexToDelete, 1);
+        Swal.fire('已取消訂單')
+        } else{
+          Swal.fire('訂單已繳費，無法取消')
+        }
+      }
+      })
+      .catch(error => {
+      console.error('Error fetching data:', error);
+      });
+    },
+    paycheck(index){
+      console.log(index)
+      fetch('http://localhost:8080/movie/buyinfo/paycheck', {
+        method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          number:index,
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+      // 處理返回的數據
+      console.log(data)
+      console.log(data.code)
+      if(data.code = 200){
+        Swal.fire('已繳費完成')
+      } else{
+        Swal.fire('已繳費過')
+      }
+      })
+      .catch(error => {
+      console.error('Error fetching data:', error);
+      });
+    },
+    // backuser() { //點電影飛去新路由
+    //   console.log(Cookies.get('account'))
+    //   this.loginAccount = Cookies.get('account')
+    //   if(this.loginAccount != ""){
+    //     fetch('http://localhost:8080/movie/user/loginCheck', {
+    //         method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+    //         headers: {
+    //         'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({
+    //           account:this.loginAccount,
+    //         })
+    //       })
+    //       .then(response => response.json())
+    //       .then(data => {
+    //       // 處理返回的數據
+    //       console.log(data)
+    //       console.log(data.code)
+    //       if(data.code == 201){
+    //           Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
+    //           Cookies.set('account', this.loginAccount, { expires: 7, path: '/' });
+    //           this.accountadminverify = true
+    //       }
+    //       if(data.code == 200){
+    //         Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
+    //         Cookies.set('account', this.loginAccount, { expires: 7, path: '/' });
+    //         console.log("A")
+    //         this.accountadminverify= false
+    //       }
+    //       })
+    //       .catch(error => {
+    //         console.error('Error fetching data:', error);
+    //       });
+    //       } 
+    //     },
+  },
+  beforeMount(){
+    this.backuserc()
   },
   mounted(){
-    this.backuserc()
-    this.accountadminverify = this.$route.query.accountadminverify;
+    // this.backuserc()
+    // this.accountadminverify = this.$route.query.accountadminverify;
     console.log(this.accountadminverify);
 }
 };
@@ -238,7 +339,7 @@ export default {
             <div class="centerbox">
               <div class="leftbox">
                 <p class="transcolor" @click="gotomyInfo()">個人資訊</p>
-                <p class="transcolor" @click="gotomyticket()">訂票資訊</p>
+                <p class="transcolor" @click="gotomyticket()" v-if="this.accountadminverify == false">訂票資訊</p>
                 <p class="transcolor" @click="gotomypageB()">修改個人頁</p>
                 <p class="transcolor" v-if="this.accountadminverify" @click="gotobackcreate()">後台系統</p>
               </div>
@@ -342,7 +443,8 @@ export default {
               <div class="rightbox" v-if="selectbar == 2">
                 <p class="textL" style="margin: 3% 0 0 6%;">訂購者名稱</p>
                 <p class="textL2">{{ this.accountInfo.name }}</p>
-                <p class="textL3">--------------------------------------------------------------------------</p>
+                <!-- <p class="textL3">--------------------------------------------------------------------------</p> -->
+                <hr>
                 <div class="textallx">
                   <p v-if="buylist.length == 0" class="textL2"> 無訂票資料</p>
                   <div v-for="(item,index) in buylist" :key="index" class="textally" style="border: 0;">
@@ -352,13 +454,66 @@ export default {
                     <p>影廳：{{ item.area }}</p>
                     <p>座位：{{ item.seat }}</p>
                     <p>總花費：{{ item.price }}</p>
-                    <p>-----------------------------</p>
+                    <div class="logboxC">
+                      <button type="button" class="buttonC" data-bs-toggle="modal" data-bs-target="#cancel" v-if="item.confirmpay==false">取消訂單</button>
+                      <button type="button" class="buttonC" data-bs-toggle="modal" data-bs-target="#pay" v-if="item.confirmpay==false" :disabled="this.buylist.confirmpay ==true">確認付款</button>
+                      <button type="button" class="buttonC" data-bs-toggle="modal" data-bs-target="#pay" v-if="item.confirmpay==true" :disabled="item.confirmpay === true">已繳費完成</button>
+                    </div>
+                    <hr class="style-two">
+                  <!-- 取消訂單 -->
+                  <div class="modal fade" id="cancel" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title a" id="exampleModalLabel">確認取消訂票</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-footer" style="justify-content: space-around;">
+                              <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: green;border: none;">放棄取消</button>
+                              <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: red;border: none;" @click="deleteticket(item.number)" >確認取消訂單</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- 確認付款 -->
+                    <div class="modal fade" id="pay" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title a" id="exampleModalLabel">請輸入信用卡資訊</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body">
+                            <p class="textall">持卡人姓名</p>
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="this.holdname">
+                                <label class="tbck" for="floatingInput">請在這裡輸入持卡人姓名</label>
+                            </div>
+                            <p class="textall">信用卡卡號</p>
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="this.holdcardnumber">
+                                <label class="tbck" for="floatingInput">請在這裡輸入卡號</label>
+                            </div>
+                            <p class="textall">到期日</p>
+                            <div class="form-floating mb-3">
+                                <input type="date" class="form-control tb" id="floatingInput" placeholder="" v-model="this.holdcarddate">
+                                <label class="tbck" for="floatingInput">在這裡輸入到期日</label>
+                            </div>
+                            <p class="textall">安全碼</p>
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control tb" id="floatingInput" placeholder="" v-model="this.holdcardpass">
+                                <label class="tbck" for="floatingInput">在這裡輸入安全碼</label>
+                            </div>
+                          </div>
+                          <div class="modal-footer" style="justify-content: space-around;">
+                              <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: green;border: none;">取消</button>
+                              <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: red;border: none;" @click="paycheck(item.number)" :disabled="!this.holdname || !this.holdcardnumber || !this.holdcarddate || !this.holdcardpass">確認修改</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <!-- <div class="logbox">
-                  <button type="button" class="button" data-bs-toggle="modal" data-bs-target="#updatepassword">修改密碼</button>
-                  <button type="button" class="button" data-bs-toggle="modal" data-bs-target="#updateInfo">修改個人資訊</button>
-                </div> -->
               </div>
             </div>
         </div>
@@ -412,7 +567,7 @@ export default {
   }
   .rightbox{
     width: 80%;
-    background-color: rgb(202, 207, 230);
+    background-color: rgb(227, 227, 237);
     margin: 1% 1% 0 0;
     border-radius: 10PX;
   }
@@ -465,6 +620,12 @@ export default {
   .tbc{
     font-family:'jf-openhuninn-2.0';
     font-size: 1em;
+    margin-left: 10%;
+  }
+
+  .tbck{
+    font-family:'jf-openhuninn-2.0';
+    font-size: 0.7em;
     margin-left: 10%;
   }
   .checkbox{
@@ -540,11 +701,11 @@ export default {
   // font-size: 1.5em;
   // margin: 0;
   overflow: auto;  /* 或者使用 overflow: scroll; */
-  max-height: 350px;  /* 设置最大高度，超出部分会产生滚动条 */
+  max-height: 400px;  /* 设置最大高度，超出部分会产生滚动条 */
   // // white-space: nowrap;  /* 防止文本换行 */
 }
 .textally{
-  height: 100%;
+  height: 115%;
   font-family:'jf-openhuninn-2.0';
   font-size: 1.5em;
   margin: 0;
@@ -552,5 +713,43 @@ export default {
   // max-height: 250px;  /* 设置最大高度，超出部分会产生滚动条 */
   // white-space: nowrap;  /* 防止文本换行 */
 }
+
+.style-one {
+    border: 0;
+    height: 5px;
+    background: #333;
+    background-image: linear-gradient(to right, #ccc, #333, #ccc);
+}
+
+.style-two {
+    border: 0;
+    height: 2px;
+    background-image: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.75), rgba(0,0,0,0));
+}
+
+
+.logboxC{
+    margin: 0 auto 2% auto;
+    display: flex;
+    height: 15%;
+    width: 80%;
+    justify-content: space-around;
+    .buttonC{
+        width: 11.2vw;
+        height: 5.9vh;
+        border: none;
+        background-color: rgb(176, 182, 213);
+        border-radius: 10px;
+        font-size: 1em;
+        font-family:'jf-openhuninn-2.0';
+        margin-top: 2.5%;
+        transition: 0.4s;
+        &:hover{
+          background-color: gainsboro;
+          color:darkslategray;
+          transform:scale(1.1,1.1);
+        }
+    }
+  }
 
 </style>

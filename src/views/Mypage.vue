@@ -201,6 +201,7 @@ export default {
     logincheck(){
         this.userLoggedIn = Cookies.get('userLoggedIn')
         if (this.userLoggedIn) {
+          this.account = Cookies.get('account')
           let a = Cookies.get('account')
           Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
           Cookies.set('account', a, { expires: 7, path: '/' });
@@ -289,7 +290,7 @@ export default {
       });
   },
   searchmypageaccount(){
-    this.account = this.searchaccount
+    
     console.log(this.account)
     fetch('http://localhost:8080/movie/mypage/search'+ '?' + "account=" + this.searchaccount, {
         method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
@@ -344,7 +345,71 @@ export default {
                 });
               })
           this.logincheck()
+          this.account = this.searchaccount
           }
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  },
+  logaccount(x){
+    console.log(x)
+    fetch('http://localhost:8080/movie/mypage/search'+ '?' + "account=" + x, {
+        method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
+        headers: {
+          'Content-Type': 'application/json'
+          },
+        body: JSON.stringify({
+        })
+      })
+      .then(response => response.json())
+      .then(data => { // 處理返回的數據
+        console.log(data);
+        if(data.code == 200){
+          this.movieInfo = JSON.parse(data.mypageList.favorit)
+          this.mymovie = JSON.parse(data.mypageList.accountMovieList)
+          this.moviecomment = data.mypageList.favoritComment
+          // console.log(this.movieInfo)
+          // console.log(this.mymovie)
+          console.log(this.moviecomment)
+          this.$router.push({
+            name: "mypage",
+            query: {
+              movieInfo: JSON.stringify(this.movieInfo),
+              mymovie: JSON.stringify(this.mymovie),
+              moviecomment: JSON.stringify(this.moviecomment),
+            },
+          });
+          setTimeout(() => {
+            this.movieType = []
+            this.getMovieType();
+            this.getPerson();
+          }, 500);
+          setTimeout(() => {
+            this.getTrailer();
+          }, 1000);
+          setTimeout(() => {
+            this.splitMovies();
+          }, 1000);
+          this.$nextTick(() => {
+                var swiper = new Swiper(this.$refs.mySwiper, {
+                  slidesPerView: 3,
+                  slidesPerColumn: 3,
+                  spaceBetween:10,
+                  autoplay: {
+                    delay: 3000,
+                    disableOnInteraction: false,
+                    stopOnLastSlide: false,
+                  },
+                  loop: false,
+                  observer: true,
+                  observeParents: true,
+                });
+              })
+          this.logincheck()
+        } else if(data.code == 400){
+          this.getrandonpage()
+        }
       })
       .catch(error => {
         console.error('Error fetching data:', error);
@@ -367,6 +432,13 @@ export default {
       });
   },
 },
+  beforeMount(){
+    this.logincheck()
+    if (this.account !="") {
+      this.logaccount(this.account)
+      console.log("login check")
+    }
+  },
   async mounted() {
     if(Object.keys(this.$route.query).length !== 0){
       console.log("A")
@@ -374,7 +446,7 @@ export default {
       this.movieInfo = this.$route.query.movieInfo
       this.mymovie = this.$route.query.mymovie
       this.moviecomment = this.$route.query.moviecomment
-    } else{
+    } else if (this.account =="") {
       console.log("B")
       this.getrandonpage()
     }
@@ -422,7 +494,13 @@ export default {
     <!-- 電影資料 -->
     <div class="header">
       <!-- <button type="button" @click="goback">去後台</button> -->
-      <p class="textHeader" style="margin: 1% auto 1% auto; width: 60%; background-color: rgb(176, 182, 213); border-radius: 20px;">目前頁面：{{ this.account }}</p>
+      <div class="toppet" style="display: flex;">
+        <p class="textHeader" style="margin: 1% 3% 1% 3%; width: 50%; background-color: rgb(176, 182, 213); border-radius: 20px;">目前所在個人主頁帳號：{{ this.account }}</p>
+        <div class="searchaccount" style="display: flex;">
+            <input type="text" name="" id="" v-model="this.searchaccount" style="height: 50px;margin: auto 0 auto 0; border-radius: 5px;">
+            <button type="button" @click="searchmypageaccount()" class="button" style="width: 240px; height: 50px;margin: auto 0 auto 2%;">以帳號搜尋個人頁</button>
+        </div>
+      </div>
       <div class="movieData">
         <!-- <img :src="'https://image.tmdb.org/t/p/w342' + this.movieInfo.movieBack " alt="" style="width: 100vw; height: 100vh; opacity: 0.2; position: fixed; top: 0; left: 0;"><br> -->
         <div class="movieDataLeft">
@@ -434,10 +512,6 @@ export default {
           <h1 class="textHeader">{{ this.movieInfo.movieTitle }}</h1>
           <h6 class="textall">{{ this.movieInfo.movieOriginaltitle }}</h6>
           <h2 class="textHeader">上映日期：{{ this.movieInfo.movieReleasedate }}</h2>
-          <div class="searchaccount">
-            <input type="text" name="" id="" v-model="this.searchaccount">
-            <button type="button" @click="searchmypageaccount()" class="button">搜尋個人頁帳號</button>
-          </div>
           <hr />
           <h2>Movie Info</h2>
           <div class="movieDataRight1">
@@ -471,7 +545,7 @@ export default {
     <hr />
     <!-- 預告片 -->
     <h1 class="textTilte">個人影評</h1>
-    <p class="text">{{ this.moviecomment }}</p>
+    <p class="text" style="margin-bottom: 30px;">{{ this.moviecomment }}</p>
     <div class="middle">
       <!-- <h1>預告片</h1> -->
       <!-- <video :src="this.trailerLink" controls></video> -->

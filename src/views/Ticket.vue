@@ -21,10 +21,12 @@
         <div class="post-box" v-for="(movie, index) in paginatedMovies" :key="index" v-if="selectedTab === '正在熱映'">
           <div class="post"><img :src="'https://image.tmdb.org/t/p/w500' + movie.poster_path" alt=""
               @click="gotointroduce(movie)">
-            <div class="title">{{ movie.title }}</div>
-            <div class="title1">{{ movie.original_title }}</div>
-            <div>評分:{{ movie.vote_average === 0 ? '尚未有評分' : movie.vote_average }}</div>
-            <div>上映日:{{ movie.release_date }}</div>
+              <div style="border:1.5px solid pink; border-radius: 0px 0px 10px 10px;">
+            <div style="color:black;" class="title">{{ movie.title }}</div>
+            <!-- <div class="title1">{{ movie.original_title }}</div>
+            <div>評分:{{ movie.vote_average === 0 ? '尚未有評分' : movie.vote_average }}</div> -->
+            <div style="color:black; margin-top: 0px; margin-bottom: 18px;">上映日:{{ movie.release_date }}</div>
+          </div>
           </div>
         </div>
       </div>
@@ -34,27 +36,29 @@
           v-if="selectedTab === '即將上映'">
           <div class="post"><img :src="'https://image.tmdb.org/t/p/w500' + movie.poster_path" alt=""
               @click="gotointroduce(movie)">
-            <div class="title">{{ movie.title }}</div>
-            <div class="title1">{{ movie.original_title }}</div>
-            <div>評分:{{ movie.vote_average === 0 ? '尚未有評分' : movie.vote_average }}</div>
-            <div>上映日:{{ movie.release_date }}</div>
+              <div style="border:1.5px solid pink; border-radius: 0px 0px 10px 10px;">
+            <div class="title" style="color:black; margin-top: 17px;">{{ movie.title }}</div>
+            <!-- <div class="title1">{{ movie.original_title }}</div>
+            <div>評分:{{ movie.vote_average === 0 ? '尚未有評分' : movie.vote_average }}</div> -->
+            <div style="color:black; margin-top: 12px; margin-bottom: 8px;">上映日:{{ movie.release_date }}</div>
+          </div>
           </div>
         </div>
       </div>
 
       <div class="pagination" v-if="selectedTab === '正在熱映'">
-        <button @click="changePage('prev')" :disabled="currentPage === 1">上一页</button>
+        <button @click="changePage('prev')" :disabled="currentPage === 1">上一頁</button>
         <button v-for="number in pageNumbers" :key="number" @click="goToPage(number)"
           :class="{ 'active-page': number === currentPage }">{{ number }}</button>
-        <button @click="changePage('next')" :disabled="currentPage * itemsPerPage >= objPlayingMovie.length">下一页</button>
+        <button @click="changePage('next')" :disabled="currentPage * itemsPerPage >= objPlayingMovie.length">下一頁</button>
       </div>
 
       <div class="pagination" v-if="selectedTab === '即將上映'">
-        <button @click="changeUpcomingPage('prev')" :disabled="upcomingCurrentPage === 1">上一页</button>
+        <button @click="changeUpcomingPage('prev')" :disabled="upcomingCurrentPage === 1">上一頁</button>
         <button v-for="number in upcomingPageNumbers" :key="number" @click="goToUpcomingPage(number)"
         :class="{ 'active-page': number === upcomingCurrentPage }">{{ number }}</button>
         <button @click="changeUpcomingPage('next')"
-          :disabled="upcomingCurrentPage * upcomingItemsPerPage >= objUpComing.length">下一页</button>
+          :disabled="upcomingCurrentPage * upcomingItemsPerPage >= objUpComing.length">下一頁</button>
       </div>
     </div>
   </div>
@@ -306,7 +310,7 @@ export default {
 .view {
   width: 100vw;
   // height: 270vh;
-  background-color: rgb(63, 63, 63);
+  background-color: white;
 
   .wrapper {
     display: flex;
@@ -317,8 +321,9 @@ export default {
     button {
       width: 150px;
       margin-top: 40px;
+      margin-right: 8px;
       border: none;
-      background-color: rgb(63, 63, 63);
+      background-color: #a4b3cc;
 
       cursor: pointer;
 
@@ -333,10 +338,11 @@ export default {
   }
 
   .underline {
-    width: 300px;
+    width: 308px;
     text-align: center;
     margin: 3px auto 40px;
     height: 2px;
+    margin-left: 610.5px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.3);
 
     .bar,
@@ -344,7 +350,7 @@ export default {
       width: 50%;
       height: 2px;
       margin-bottom: -2px;
-      background-color: rgb(231, 0, 140);
+      background-color: rgb(245, 120, 141);
     }
 
     .bar {
@@ -357,31 +363,46 @@ export default {
   }
 
   .box-wrapper {
-    width: 80vw;
+    width: 90vw;
     display: flex;
     color: white;
     flex-wrap: wrap;
     margin: auto;
     text-align: center;
+    margin-left: 113px;
+    // border: 1px solid black;
 
     .post-box {
       width: 300px;
       height: 80vh;
+      margin-right: 35px;
+    // border: 1px solid black;
+    // border: 1px solid black;
+
 
       .post {
         width: 300px;
         height: 60vh;
         max-height: 60vh;
+        
 
         img {
           height: 100%;
-          width: 90%;
+          width: 100%;
+          margin-right: 10px;
+          border-radius: 10px 10px 0 0;
           object-fit: cover; // 保持圖片比例並填滿 img 區域
           cursor: pointer;
+          
         }
 
         .title {
           font-size: 20pt;
+          width: 270px;
+          margin-left: 17px;
+          margin-top: 10px;
+          
+          // border: 1px solid black;
           text-align: center;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -389,6 +410,8 @@ export default {
         }
 
         .title1 {
+          width: 270px;
+          margin-left: 17px;
           color: rgb(158, 158, 158);
           text-align: center;
           text-overflow: ellipsis;
@@ -409,8 +432,9 @@ export default {
   button {
     color: rgb(158, 158, 158);
     font-size: 18pt;
-    background-color: rgb(63, 63, 63);
+    background-color: white;
     border: 0px;
+    margin-bottom: 12px;
 
     &.active-page,
     &:hover {
@@ -419,4 +443,22 @@ export default {
   }
 
 }
+
+.pagination {
+        width: 100vw;
+        justify-content: center;
+        align-items: center;
+        button {
+            color: rgb(0, 0, 0);
+            font-size: 18pt;
+            // background-color: #525f75;
+            border: 0px;
+
+            &.active-page,
+            &:hover {
+                color: rgb(141, 141, 125); // 上一页、下一页的颜色
+            }
+        }
+
+    }
 </style>  

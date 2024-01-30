@@ -83,6 +83,11 @@ const router = createRouter({
       name: 'backuser',
       component: () => import('../views/back/Backuser.vue')
     },
+    {
+      path: '/paypage',
+      name: 'paypage',
+      component: () => import('../views/ticket/paypage.vue')
+    },
   ]
 })
 

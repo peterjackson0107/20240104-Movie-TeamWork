@@ -2,44 +2,47 @@
     <div class="view">
         <div class="check">
             <div class="movieName">
-                <p>電影名稱:</p>
-                <input type="text" v-model="this.movieName">
+                <p style="color: rgb(255, 255, 255);">電影名稱：</p>
+                <input type="text" v-model="this.movieName" style="width: 82%;">
             </div>
             <!-- <div class="onDate">
                 <p>上映日期:</p>
                 <input type="date" name="" id="" v-model="this.onDate">
             </div> -->
             <div class="click">
-                <button class="search1" type="submit" @click="getPlayMovie()">正在熱映</button>
-                <button class="search" type="submit" @click="getMovieName()">搜尋</button>
+                <button class="buttonZ" type="submit" @click="getPlayMovie()">正在熱映</button>
+                <button class="buttonZ" type="submit" @click="getMovieName()">搜尋</button>
             </div>
         </div>
-        <div class="icon">
-            <button type="button" @click="gobackSearch()"><i class="fa-solid fa-rotate-left"></i></button>
+        <div style="display: flex;width: 90vw;">
+            <i class="fa-solid fa-rotate-left icon" @click="gobackSearch()"></i>
+            <p class="textTC">點此返回</p>
         </div>
         <table class="table1">
             <thead>
                 <tr class="index">
                     <th>電影海報</th>
-                    <th>電影名稱</th>
+                    <th style="width: 5vw;">電影名稱</th>
                     <!-- <th>電影類型</th> -->
-                    <th>電影描述</th>
-                    <th>上映日期</th>
-                    <th>新增</th>
+                    <th style="width: 46vw;">電影描述</th>
+                    <th style="width: 10vw;">上映日期</th>
+                    <th style="width: 7vw;">新增</th>
 
                 </tr>
                 <tr v-for="(movie, index) in displayedMovies " :key="index">
 
-                    <td style="width: 200px;"><img :src="'https://image.tmdb.org/t/p/w342' + movie.poster_path" alt=""
-                            @click="gotoSeat(movie)" style="width: 200px; ">
+                    <td style="width: 200px; background-color: #6f81a2;"><img
+                            :src="'https://image.tmdb.org/t/p/w342' + movie.poster_path" alt="" @click="gotoSeat(movie)"
+                            style="width: 200px; ">
                     </td>
-                    <td>{{ movie.title }}</td>
+                    <td style="background-color: #6f81a2;">{{ movie.title }}</td>
                     <!-- <td>{{ getType(movie) }}</td> -->
-                    <td style=" width: 35vw;">{{ truncateOverview(movie.overview === "" ? "尚未有簡介" :
+                    <td style=" width: 35vw;background-color: #6f81a2;">{{ truncateOverview(movie.overview === "" ? "尚未有簡介"
+                        :
                         movie.overview) }}</td>
-                    <td>{{ movie.release_date }}</td>
-                    <td><button class="create" type="button" @click="gotoSeat(movie)"
-                            style="background-color: rgb(100, 99, 99);">建立</button></td>
+                    <td style="margin: 0 2% 0 2%;background-color: #6f81a2;">{{ movie.release_date }}</td>
+                    <td style="background-color: #6f81a2;"><button class="create" type="button"
+                            @click="gotoSeat(movie)">建立場次</button></td>
                 </tr>
             </thead>
         </table>
@@ -73,6 +76,7 @@ export default {
         }
     },
     methods: {
+        //限制簡介的數字
         truncateOverview(overview) {
             const maxLength = 200; // 设置最大字数
             if (overview.length > maxLength) {
@@ -81,30 +85,43 @@ export default {
                 return overview;
             }
         },
+        //滑到最上面
         scrollToTop() {
             window.scrollTo(0, 0);
         },
+        //到指定頁數
         goToPage(pageNumber) {
             this.currentPage = pageNumber;
             this.scrollToTop()
         },
+        //下一頁
         nextPage() {
             if (this.currentPage < Math.ceil(this.objPlayMovies.length / this.pageSize)) {
                 this.currentPage++;
             }
             this.scrollToTop()
         },
+        //上一頁
         prevPage() {
             if (this.currentPage > 1) {
                 this.currentPage--;
             }
             this.scrollToTop()
         },
+        //回到搜尋頁面
         gobackSearch() {
             this.$router.push('/backSearch')
         },
-        gobackAdd() {
-            this.$router.push('/backAdd')
+        //到添加資訊頁面
+        gotoSeat(movie) {
+            console.log(movie)
+            this.$router.push({
+                name: 'backAdd',
+                query: {
+                    movieId: movie.id,
+                    movieTitle: movie.title,
+                }
+            });
         },
         async getPlayMovie() { //上映中
             const options = {
@@ -116,7 +133,7 @@ export default {
                 },
             };
             let page = 1;
-            let count = 100; //要抓的電影數
+            let count = 30; //要抓的電影數
             let playingMovies = [];
 
             try {
@@ -163,16 +180,6 @@ export default {
                 console.error(error);
             }
         },
-        gotoSeat(movie) {
-            console.log(movie)
-            this.$router.push({
-                name: 'backAdd',
-                query: {
-                    movieId: movie.id,
-                    movieTitle: movie.title,
-                }
-            });
-        },
         async getMovieName() { //上映中
             const options = {
                 method: "GET",
@@ -183,7 +190,7 @@ export default {
             };
 
             let page = 1;
-            let count = 100; //要抓的電影數
+            let count = 30; //要抓的電影數
             let playingMovies = [];
 
             try {
@@ -264,7 +271,7 @@ export default {
     },
     mounted() {
         this.getPlayMovie()
-        this.getMovieType()
+        // this.getMovieType()
     },
     computed: {
         displayedMovies() {
@@ -289,15 +296,17 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: rgb(100, 99, 99);
+    background-color: rgb(174, 177, 192);
+    // background-color: rgb(255, 255, 255);
 
     .check {
         display: flex;
         width: 90vw;
         height: 12vh;
-        border: 1px solid black;
+        // border: 1px solid black;
+        border-radius: 10px;
         margin-top: 10px;
-
+        background-color: #525f75;
 
         .movieName {
             width: 60vw;
@@ -306,7 +315,7 @@ export default {
             align-items: center;
             font-size: 16pt;
             margin-left: 20px;
-            color: white;
+            color: rgb(0, 0, 0);
 
             input {
                 width: 80%;
@@ -343,14 +352,14 @@ export default {
                 width: 30%;
                 height: 5vh;
                 margin-top: 3.5vh;
-                color: white;
+                color: rgb(0, 0, 0);
                 background-color: salmon;
             }
 
             .search1 {
                 width: 30%;
                 height: 5vh;
-                color: white;
+                color: rgb(0, 0, 0);
                 background-color: salmon;
                 margin-right: 35px;
             }
@@ -364,18 +373,19 @@ export default {
 
     .icon {
         display: flex;
-        width: 90vw;
-        height: 8vh;
+        width: 60px;
+        height: 9vh;
+        font-size: 40pt;
+        // line-height: 2em;
+        padding-top: 10px;
+    }
 
-
-        button {
-            // background-color: white;
-            background-color: rgb(100, 99, 99);
-            border-width: 0;
-            font-size: 32pt;
-            width: 5vw;
-            height: 5vh;
-        }
+    .textTC {
+        font-family: 'jf-openhuninn-2.0';
+        font-size: 1.5em;
+        margin-top: 20px;
+        color: rgb(0, 0, 0);
+        // margin-bottom: 50px;
     }
 
 
@@ -384,7 +394,7 @@ export default {
         height: auto;
 
         .index {
-            background-color: rgb(218, 216, 216);
+            background-color: #525f75;
 
         }
 
@@ -399,20 +409,35 @@ export default {
         th {
             height: 5vh;
             border: 1px solid black;
+            border-radius: 5px;
+            color: rgb(237, 235, 235);
 
         }
 
         td {
             border: 1px solid black;
-            color: white;
+            color: rgb(0, 0, 0);
             font-size: 16pt;
 
         }
 
         .create {
             border: 0;
-            background-color: white;
-            color: salmon;
+            font-size: 1em;
+            font-family: 'jf-openhuninn-2.0';
+            color: rgb(0, 0, 0);
+            margin-top: 2.5%;
+            transition: 0.4s;
+            line-height: 1em;
+            border: none;
+            background: none;
+            outline: none;
+            background-color: none;
+
+            &:hover {
+                color: rgb(228, 220, 220);
+                transform: scale(1.2, 1.2);
+            }
         }
     }
 
@@ -420,20 +445,59 @@ export default {
         width: 90vw;
         justify-content: center;
         align-items: center;
-        background-color: rgb(100, 99, 99);
+        background-color: #525f75;
 
         button {
-            color: rgb(158, 158, 158);
+            color: rgb(255, 255, 255);
             font-size: 18pt;
-            background-color: rgb(100, 99, 99);
+            background-color: #525f75;
             border: 0px;
 
             &.active-page,
             &:hover {
-                color: salmon; // 上一页、下一页的颜色
+                color: rgb(0, 0, 0); // 上一页、下一页的颜色
             }
         }
 
     }
 }
-</style>
+
+.buttonZ {
+    width: 12.2vw;
+    height: 4.9vh;
+    border: none;
+    background-color: rgb(176, 182, 213);
+    border-radius: 10px;
+    font-size: 1.2em;
+    font-family: 'jf-openhuninn-2.0';
+    transition: 0.4s;
+    line-height: 1em;
+    margin: 25px 30px 0 0;
+
+    &:hover {
+        background-color: gainsboro;
+        color: darkslategray;
+        transform: scale(1.1, 1.1);
+    }
+}
+
+
+.fixword {
+    width: 6.2vw;
+    height: 3.9vh;
+    border: none;
+    font-size: 1em;
+    font-family: 'jf-openhuninn-2.0';
+    color: white;
+    margin-top: 2.5%;
+    transition: 0.4s;
+    line-height: 1em;
+    border: none;
+    background: none;
+    outline: none;
+
+    &:hover {
+        color: rgb(255, 255, 255);
+        transform: scale(1.2, 1.2);
+    }
+}</style>

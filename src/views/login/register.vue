@@ -60,9 +60,6 @@ export default {
             .then(kk => {
             // 處理返回的數據
               console.log(kk)
-              if(kk.code =200){
-                this.$router.push("/login")
-              }
             })
             .catch(error => {
               console.error('Error fetching data:', error);
@@ -210,10 +207,10 @@ export default {
                     <input type="text" class="form-control tb" id="floatingInput" placeholder="name@example.com" v-model="this.account">
                     <label class="tbc" for="floatingInput">請在這裡輸入帳號</label>
                   </div>
-                  <p class="textall">驗整碼</p>
+                  <p class="textall">驗證碼</p>
                   <div class="form-floating mb-3">
                     <input type="text" class="form-control tb" id="floatingInput" placeholder="" v-model="this.verify">
-                    <label class="tbc" for="floatingInput">在這裡輸入驗整碼</label>
+                    <label class="tbc" for="floatingInput">在這裡輸入驗證碼</label>
                   </div>
                 </div>
                 <div class="modal-footer" style="justify-content: space-around;">

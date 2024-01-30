@@ -36,19 +36,19 @@
             <h1>{{ this.movieInfo.movieName }}</h1>
 
             <ul>
-                <li>影院:{{ this.movieInfo.cinema }}</li>
-                <li>影廳:{{ this.movieInfo.area }}</li>
-                <li>票價:{{ this.movieInfo.price }}</li>
-                <li>撥放日期:{{ this.movieInfo.playDate }}</li>
-                <li>撥放時間:{{ this.movieInfo.playTime }}</li>
-                <li>訂票者:{{ this.account }}</li>
-                <li>座位:{{ this.formattedSelectedSeatsString }}</li>
+                <li>影院：{{ this.movieInfo.cinema }}</li>
+                <li>影廳：{{ this.movieInfo.area }}</li>
+                <li>票價：{{ this.movieInfo.price }}</li>
+                <li>播放日期：{{ this.movieInfo.playDate }}</li>
+                <li>播放時間：{{ this.movieInfo.playTime }}</li>
+                <li>訂票者：{{ this.account }}</li>
+                <li>座位：{{ this.formattedSelectedSeatsString }}</li>
             </ul>
             <hr class="separator">
-            <h2>總共價格</h2>
+            <h2>總金額</h2>
             <h3>${{ this.totalPrice }}</h3>
-            <button type="button" @click="goinTicket()">返回</button>
-            <button type="button" @click="buyTicket()">立即購票</button>
+            <button style=" background-color:  #d1d8e3; margin-left: 17px; border-radius: 5px;" type="button" @click="goinTicket()">取消</button>
+            <button style=" background-color:  #d1d8e3; margin-left: 15px; border-radius: 5px;" type="button" @click="buyTicket()">立即購票</button>
         </div>
     </div>
 </template>
@@ -56,6 +56,7 @@
 <script>
 import axios from 'axios';
 import Cookies from 'js-cookie'
+import Swal from 'sweetalert2'
 export default {
     data() {
         return {
@@ -66,9 +67,6 @@ export default {
             userLoggedIn: false,
             account: "",
             lockedSeats: [
-                // { row: 2, col: 3 },
-                // { row: 4, col: 6 },
-                // { row: 3, col: 2 }
             ] // 鎖定的座位
         };
     }, computed: {
@@ -129,7 +127,7 @@ export default {
                 console.log(res);
                 console.log(res.data.rtnCode);
                 if (res.data.rtnCode == "Successful!") {
-                    alert("恭喜購票成功")
+                    Swal.fire("恭喜購票成功");
                     this.$router.push("/Ticket")
                 }
             }
@@ -317,7 +315,7 @@ export default {
         }
 
         button {
-            margin-top: 30px;
+            margin-top: 15px;
         }
     }
 }

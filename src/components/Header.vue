@@ -40,51 +40,8 @@ export default{
             this.logout()
             this.$router.push("/login")
         },
-        backuser() { //點電影飛去新路由
-            console.log(Cookies.get('account'))
-            this.loginAccount = Cookies.get('account')
-            
-            if(this.loginAccount != ""){
-                fetch('http://localhost:8080/movie/user/loginCheck', {
-                    method: 'POST', // 這裡使用POST方法，因為後端是@PostMapping
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                    account:this.loginAccount,
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                // 處理返回的數據
-                    console.log(data)
-                    console.log(data.code)
-                    if(data.code == 201){
-                    Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
-                    Cookies.set('account', this.loginAccount, { expires: 7, path: '/' });
-                    this.$router.push({
-                        name: 'backuser',
-                        query: { 
-                        accountadminverify: true,
-                        }
-                    });
-                    }
-                    if(data.code == 200){
-                    Cookies.set('userLoggedIn', true, { expires: 7, path: '/' });
-                    Cookies.set('account', this.loginAccount, { expires: 7, path: '/' });
-                    console.log("A")
-                    this.$router.push({
-                        name: 'backuser',
-                        query: { 
-                        accountadminverify: false,
-                        }
-                    });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                });
-            } 
+        backuserp(){
+            this.$router.push("/backuser")
         },
     },
     mounted(){
@@ -105,8 +62,8 @@ export default{
             <RouterLink :to="`/mypage`" class="a">個人主頁</RouterLink>
             <RouterLink :to="`/create`" class="a">影迷創作</RouterLink>
             <div v-if="this.userLoggedIn || this.getAuth" class="a">
-                <p v-if="this.userLoggedIn" @click="backuser()">登入帳號：{{ this.loginAccount }}</p>
-                <p v-if="this.getAuth" @click="backuser()">登入帳號：{{ this.getuser }}</p>
+                <p v-if="this.userLoggedIn" @click="backuserp()">登入帳號：{{ this.loginAccount }}</p>
+                <p v-if="this.getAuth" @click="backuserp()">登入帳號：{{ this.getuser }}</p>
             </div>
             <div v-if="this.userLoggedIn || this.getAuth" class="a">
                 <p @click="logout1">登出</p>

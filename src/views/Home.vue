@@ -9,7 +9,6 @@ export default {
       objSearchMovies: [], // 搜尋電影
       objTypeMovies: [], // 選擇類型找電影
       itemsPerSlide: 3, // 每頁顯示的輪播項目數量
-      itemsPerSlide1: 9, // 每頁顯示的輪播項目數量
       currentSlide: 0,
       selectedType: "", // 選單選到的類型
       searchText: "", // 搜尋電影
@@ -46,10 +45,10 @@ export default {
       for (
         let i = 0;
         i < this.objTypeMovies.length;
-        i += this.itemsPerSlide1
+        i += this.itemsPerSlide
       ) {
         cutArray.push(
-          this.objTypeMovies.slice(i, i + this.itemsPerSlide1)
+          this.objTypeMovies.slice(i, i + this.itemsPerSlide)
         );
       }
       console.log("typePerPage:", cutArray);
@@ -530,19 +529,19 @@ export default {
 <template>
   <h1>上映中電影</h1>
   <div class="container">
-    <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+    <div id="carouselExample" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
       <div class="carousel-inner">
         <div v-for="(itemsChunk, index) in playPerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
           <div class="row">
-            <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
+            <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col">
               <a @click="chooseMovie(item)">
-                <div class="card" style="width: 400px">
-                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報"/>
-                  <div class="card-body">
-                    <p class="card-text">
-                      <span>{{ "名稱：" + item.title }}</span><br />
-                      <span>{{ "上映日期：" + item.release_date }}</span>
-                    </p>
+                <div class="card" style="width: 410px;">
+                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報" style="height: 500px;"/>
+                  <div class="card-body" style="height: 125px;">
+                      <p class="card-text" style="margin-top: 10px;">
+                        <span>{{ item.title }}</span><br />
+                        <span>{{ "上映日期：" + item.release_date }}</span>
+                      </p>
                   </div>
                 </div>
               </a>
@@ -565,22 +564,21 @@ export default {
       </button>
     </div>
   </div>
-
   <h1>近期上映電影</h1>
   <div class="container">
-    <div id="carouselExample1" class="carousel slide" data-bs-ride="carousel">
+    <div id="carouselExample1" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
       <div class="carousel-inner">
         <div v-for="(itemsChunk, index) in comePerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
           <div class="row">
             <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
               <a @click="chooseMovie(item)">
-                <div class="card" style="width: 400px">
-                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報"/>
-                  <div class="card-body">
-                    <p class="card-text">
-                      <span>{{ "名稱：" + item.title }}</span><br/>
-                      <span>{{ "上映日期：" + item.release_date }}</span>
-                    </p>
+                <div class="card" style="width: 410px;">
+                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報" style="height: 500px;"/>
+                  <div class="card-body" style="height: 125px;">
+                      <p class="card-text" style="margin-top: 10px;">
+                        <span>{{ item.title }}</span><br />
+                        <span>{{ "上映日期：" + item.release_date }}</span>
+                      </p>
                   </div>
                 </div>
               </a>
@@ -603,22 +601,21 @@ export default {
       </button>
     </div>
   </div>
-
   <h1>為你推薦</h1>
   <div class="container">
-    <div id="carouselExample2" class="carousel slide" data-bs-ride="carousel">
+    <div id="carouselExample2" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
       <div class="carousel-inner">
         <div v-for="(itemsChunk, index) in popularPerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
           <div class="row">
             <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
               <a @click="chooseMovie(item)">
-                <div class="card" style="width: 400px">
-                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報"/>
-                  <div class="card-body">
-                    <p class="card-text">
-                      <span>{{ "名稱：" + item.title }}</span><br />
-                      <span>{{ "上映日期：" + item.release_date }}</span>
-                    </p>
+                <div class="card" style="width: 410px;">
+                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報" style="height: 500px;"/>
+                  <div class="card-body" style="height: 125px;">
+                      <p class="card-text" style="margin-top: 10px;">
+                        <span>{{ item.title }}</span><br />
+                        <span>{{ "上映日期：" + item.release_date }}</span>
+                      </p>
                   </div>
                 </div>
               </a>
@@ -641,7 +638,6 @@ export default {
       </button>
     </div>
   </div>
-
   <h1>搜尋電影</h1>
   <div class="container">
     <input type="text" v-model="searchText" required style=" width: 25vw; border-radius: 0%; outline: none; resize: none; border: 0; background: none; border-bottom: 1px solid black;"/>
@@ -649,19 +645,19 @@ export default {
       搜尋
     </button>
 
-    <div id="carouselExample3" class="carousel slide" data-bs-ride="carousel">
+    <div id="carouselExample3" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
       <div class="carousel-inner">
         <div v-for="(itemsChunk, index) in searchPerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
           <div class="row">
             <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
               <a @click="chooseMovie(item)">
-                <div class="card" style="width: 400px">
-                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報"/>
-                  <div class="card-body">
-                    <p class="card-text">
-                      <span>{{ "名稱：" + item.title }}</span><br />
-                      <span>{{ "上映日期：" + item.release_date }}</span>
-                    </p>
+                <div class="card" style="width: 410px;">
+                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報" style="height: 500px;"/>
+                  <div class="card-body" style="height: 125px;">
+                      <p class="card-text" style="margin-top: 10px;">
+                        <span>{{ item.title }}</span><br />
+                        <span>{{ "上映日期：" + item.release_date }}</span>
+                      </p>
                   </div>
                 </div>
               </a>
@@ -684,9 +680,9 @@ export default {
       </button>
     </div>
   </div>
-
+  
   <h1>分類選擇</h1>
-  <div class="movieType">
+  <div class="movieType" style="margin: 20px 0 60px 0;">
     <select @change="getTypeMovie">
       <option v-for="(item, index) in this.objtype" :key="index">
         {{ item.name }}
@@ -694,19 +690,19 @@ export default {
     </select>
   </div>
   <div class="container">
-    <div id="customCarousel4" class="carousel slide" data-bs-ride="carousel">
+    <div id="customCarousel4" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
       <div class="carousel-inner">
         <div v-for="(itemsChunk, index) in typePerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
           <div class="row">
             <div v-for="(item, innerIndex) in itemsChunk" :key="innerIndex" class="col-md-4">
               <a @click="chooseMovie(item)">
-                <div class="card">
-                  <img :src="'https://image.tmdb.org/t/p/w342' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報"/>
-                  <div class="card-body">
-                    <p class="card-text">
-                      <span>{{ "名稱：" + item.title }}</span><br />
-                      <span>{{ "上映日期：" + item.release_date }}</span>
-                    </p>
+                <div class="card" style="width: 410px;">
+                  <img :src="'https://image.tmdb.org/t/p/w500' + item.poster_path" class="d-block w-100 card-img-top" alt="無電影海報" style="height: 500px;"/>
+                  <div class="card-body" style="height: 125px;">
+                      <p class="card-text" style="margin-top: 10px;">
+                        <span>{{ item.title }}</span><br />
+                        <span>{{ "上映日期：" + item.release_date }}</span>
+                      </p>
                   </div>
                 </div>
               </a>
@@ -734,22 +730,20 @@ export default {
 <style scoped lang="scss">
 h1 {
   margin-top: 10px;
+  text-align: center;
 }
-span,
-button,
-p,
-label,
-select {
-  font-family: "Montserrat", sans-serif, sans-serif, "M PLUS 1";
-  color: #557;
-  font-size: 18px;
+span, button, p, label, select {
+  // font-family: "Montserrat", sans-serif, sans-serif, "M PLUS 1";
+  font-family:'jf-openhuninn-2.0';
+  color: rgb(51, 51, 62);
+  font-size: 22px;
 }
 
 .movieType {
   button {
     width: 200px;
     height: 100px;
-    margin: 20px;
+    margin: 22px;
 
     &:hover {
       background-color: gray;
@@ -758,5 +752,11 @@ select {
 }
 .card {
   margin: 10px 0;
+}
+
+.textHeader{
+  font-family:'jf-openhuninn-2.0';
+  font-size: 2em;
+  margin: 0;
 }
 </style>
