@@ -127,7 +127,7 @@ export default {
                 console.log(res);
                 console.log(res.data.rtnCode);
                 if (res.data.rtnCode == "Successful!") {
-                    Swal.fire("恭喜購票成功");
+                    Swal.fire("恭喜購票成功，請於信件或是個人訂票資訊付款");
                     this.$router.push("/Ticket")
                 }
             }
@@ -237,6 +237,7 @@ export default {
                     border-radius: 100%;
                     border: 10px solid;
                     font-size: 24pt;
+                    
                 }
             }
         }
@@ -244,13 +245,14 @@ export default {
         .postion {
             display: flex;
             margin-top: 50px;
+            margin-right: 25px;
 
             .rowTitle {
                 ol {
                     width: 40px;
                     height: 40px;
                     margin-top: 10px;
-                    margin-bottom: 30px;
+                    margin-bottom: 26px;
                 }
             }
 
@@ -318,5 +320,11 @@ export default {
             margin-top: 15px;
         }
     }
+}
+
+.textall {
+  font-family: "jf-openhuninn-2.0";
+  font-size: 1em;
+  margin: 0;
 }
 </style>

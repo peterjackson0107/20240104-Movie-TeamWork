@@ -36,21 +36,26 @@
                     <th style="width: 10vw;">修改場次</th>
                 </tr>
                 <tr v-for="(movie, index) in displayedMovies" :key="index">
-                    <td style="background-color: #6f81a2;"><i class="fa-solid fa-trash"
-                            @click="this.deleteMovie(movie.number)"></i>
+                    <td style="background-color: #b9c3d5;">
+                        <i class="fa-solid fa-trash" @click="this.deleteMovie(movie.number)" v-if="!movie.onSell"></i>
+                        <i class="fa-solid fa-xmark" v-if="movie.onSell"></i>
                     </td>
-                    <td style="background-color: #6f81a2;">{{ movie.movie }}</td>
-                    <td style="background-color: #6f81a2;">{{ movie.cinema }}</td>
-                    <td style="background-color: #6f81a2;">{{ movie.area }}</td>
-                    <td style="background-color: #6f81a2;">{{ movie.price }}</td>
-                    <td style="background-color: #6f81a2;">{{ movie.onDate }}</td>
-                    <td style="background-color: #6f81a2;">{{ visableTime(movie.onTime) }}</td>
-                    <td style="background-color: #6f81a2;">{{ visableSell(movie.onSell) }}</td>
-                    <td style="background-color: #6f81a2;">
+                    <td style="background-color: #b9c3d5;">{{ movie.movie }}</td>
+                    <td style="background-color: #b9c3d5;">{{ movie.cinema }}</td>
+                    <td style="background-color: #b9c3d5;">{{ movie.area }}</td>
+                    <td style="background-color: #b9c3d5;">{{ movie.price }}</td>
+                    <td style="background-color: #b9c3d5;">{{ movie.onDate }}</td>
+                    <td style="background-color: #b9c3d5;">{{ visableTime(movie.onTime) }}</td>
+                    <td style="background-color: #b9c3d5;">{{ visableSell(movie.onSell) }}</td>
+                    <td style="background-color: #b9c3d5;">
                         <!-- 修改按鈕 -->
                         <button type="button" class="fixword" data-bs-toggle="modal" data-bs-target="#staticBackdrop"
-                            @click="showEditModal(movie); searchTime()" :disabled="movie.onSell">
+                            @click="showEditModal(movie); searchTime()" :disabled="movie.onSell" v-if="!movie.onSell">
                             修改
+                        </button>
+                        <button type="button" class="fixwordX" data-bs-toggle="modal" data-bs-target="#staticBackdrop"
+                            @click="showEditModal(movie); searchTime()" :disabled="movie.onSell" v-if="movie.onSell">
+                            停止修改
                         </button>
 
                     </td>
@@ -77,7 +82,7 @@
                 <div class="modal-body">
                     <select class="form-select form-select mb-3" v-model="this.editMovie.movieCinema">
                         <option selected>選擇影院</option>
-                        <option value="紹仁戲院">紹仁戲院</option>
+                        <option value="紹人戲院">紹人戲院</option>
                         <option value="裕峰影城">裕峰影城</option>
                         <option value="梓宏影院">梓宏影院</option>
                         <option value="暐衡劇院">暐衡劇院</option>
@@ -202,6 +207,7 @@ export default {
                 return cc;
             };
         },
+        
     },
     methods: {
         //滑到最上面
@@ -360,27 +366,41 @@ export default {
         },
         //刪除電影的功能
         async deleteMovie(movieNumber) {
-            // 提示使用者確認是否刪除
-            const confirmDelete = window.confirm('確定要刪除此電影嗎？');
-
-            if (confirmDelete) {
-                // 如果使用者確認刪除，再進行刪除操作
-                try {
-                    const response = await axios.post('http://localhost:8080/movie/movieinfo/delete', {
-                        number: movieNumber
+            Swal.fire({
+                title: "確定嗎?",
+                text: "你確定要刪除這部電影資訊!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                cancelButtonText: "取消",
+                confirmButtonText: "我確定!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: "刪除!",
+                        text: "你的資料已刪除.",
+                        icon: "success"
                     });
+                    const response = axios.post('http://localhost:8080/movie/movieinfo/delete', {
+                        number: movieNumber
 
-                    // 刪除成功的處理，例如重新載入或更新電影列表
-                    console.log(response);
-                } catch (error) {
-                    // 刪除失敗的處理，例如顯示錯誤信息
-                    console.error('刪除電影失敗', error);
+                    });
+                    setTimeout(() => { location.reload(); }, 2000);
                 }
-            } else {
-                // 如果使用者取消刪除，不執行任何操作
-                console.log('取消刪除');
-            }
-            this.search()
+            });
+            await this.search();
+            // // 提示使用者確認是否刪除
+            // const confirmDelete = window.confirm('確定要刪除此電影嗎？');
+            // if (confirmDelete) {
+            //     // 如果使用者確認刪除，再進行刪除操作
+            //     const response = await axios.post('http://localhost:8080/movie/movieinfo/delete', {
+            //         number: movieNumber
+            //     }
+            //     );
+            //     this.search();
+
+            // }
         },
         //更新電影不可購票
         updateS() {
@@ -526,12 +546,14 @@ export default {
 
 <style scoped lang="scss">
 .view {
-    height: 100vh;
+    height: 92vh;
     display: flex;
     flex-direction: column;
     // justify-content: center;
     align-items: center;
-    background-color: rgb(174, 177, 192);
+    background-image: url(../../picture/Movie1.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
 
     .check {
         display: flex;
@@ -540,7 +562,7 @@ export default {
         height: 12vh;
         // border: 1px solid black;
         border-radius: 10px;
-        margin-top: 10px;
+        margin-top: 25px;
         background-color: #525f75;
 
         .search {
@@ -698,6 +720,21 @@ export default {
         color: rgb(255, 255, 255);
         transform: scale(1.2, 1.2);
     }
+}
+
+.fixwordX {
+    width: 6.2vw;
+    height: 3.9vh;
+    border: none;
+    font-size: 1em;
+    font-family: 'jf-openhuninn-2.0';
+    color: rgb(0, 0, 0);
+    margin-top: 2.5%;
+    transition: 0.4s;
+    line-height: 1em;
+    border: none;
+    background: none;
+    outline: none;
 }
 
 .buttonS {

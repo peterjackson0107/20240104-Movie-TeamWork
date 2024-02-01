@@ -37,6 +37,8 @@ export default {
       holdcardnumber:"",
       holdcarddate:"",
       holdcardpass:"",
+      getnumber:0,
+      getindex:0,
     }
   },
   components: {
@@ -161,6 +163,8 @@ export default {
                       this.accountInfo.name = this.changeName
                       this.accountInfo.email = (this.changeemail + this.emailboxTarget)
                       this.accountInfo.phone = this.changephone
+                    }else if (data.code ==402){
+                      Swal.fire('信箱已被使用')
                     }
                 })
                 .catch(error => {
@@ -277,6 +281,11 @@ export default {
       console.log(data.code)
       if(data.code = 200){
         Swal.fire('已繳費完成')
+        console.log(this.buylist[13])
+        console.log(this.buylist[13].confirmpay)
+        console.log(this.buylist[this.getindex].confirmpay)
+        this.buylist[this.getindex].confirmpay = true
+        console.log(this.buylist)
       } else{
         Swal.fire('已繳費過')
       }
@@ -284,6 +293,13 @@ export default {
       .catch(error => {
       console.error('Error fetching data:', error);
       });
+    },
+    sendnumber(index,y){
+      this.getnumber = index
+      this.getindex = y
+      console.log(index)
+      console.log(this.getnumber)
+      console.log(this.getindex)
     },
     // backuser() { //點電影飛去新路由
     //   console.log(Cookies.get('account'))
@@ -340,7 +356,7 @@ export default {
               <div class="leftbox">
                 <p class="transcolor" @click="gotomyInfo()">個人資訊</p>
                 <p class="transcolor" @click="gotomyticket()" v-if="this.accountadminverify == false">訂票資訊</p>
-                <p class="transcolor" @click="gotomypageB()">修改個人頁</p>
+                <p class="transcolor" @click="gotomypageB()" v-if="this.accountadminverify == false">修改個人頁</p>
                 <p class="transcolor" v-if="this.accountadminverify" @click="gotobackcreate()">後台系統</p>
               </div>
               <div class="rightbox" v-if="selectbar == 1">
@@ -455,8 +471,8 @@ export default {
                     <p>座位：{{ item.seat }}</p>
                     <p>總花費：{{ item.price }}</p>
                     <div class="logboxC">
-                      <button type="button" class="buttonC" data-bs-toggle="modal" data-bs-target="#cancel" v-if="item.confirmpay==false">取消訂單</button>
-                      <button type="button" class="buttonC" data-bs-toggle="modal" data-bs-target="#pay" v-if="item.confirmpay==false" :disabled="this.buylist.confirmpay ==true">確認付款</button>
+                      <button type="button" class="buttonC" data-bs-toggle="modal" data-bs-target="#cancel" v-if="item.confirmpay==false" @click="sendnumber(item.number)">取消訂單</button>
+                      <button type="button" class="buttonC" data-bs-toggle="modal" data-bs-target="#pay" v-if="item.confirmpay==false" :disabled="this.buylist.confirmpay ==true" @click="sendnumber(item.number,index)">確認付款</button>
                       <button type="button" class="buttonC" data-bs-toggle="modal" data-bs-target="#pay" v-if="item.confirmpay==true" :disabled="item.confirmpay === true">已繳費完成</button>
                     </div>
                     <hr class="style-two">
@@ -470,7 +486,7 @@ export default {
                           </div>
                           <div class="modal-footer" style="justify-content: space-around;">
                               <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: green;border: none;">放棄取消</button>
-                              <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: red;border: none;" @click="deleteticket(item.number)" >確認取消訂單</button>
+                              <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: red;border: none;" @click="deleteticket(this.getnumber)" >確認取消訂單</button>
                           </div>
                         </div>
                       </div>
@@ -507,7 +523,7 @@ export default {
                           </div>
                           <div class="modal-footer" style="justify-content: space-around;">
                               <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: green;border: none;">取消</button>
-                              <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: red;border: none;" @click="paycheck(item.number)" :disabled="!this.holdname || !this.holdcardnumber || !this.holdcarddate || !this.holdcardpass">確認修改</button>
+                              <button type="button" class="btn btn-primary a" data-bs-dismiss="modal" style="background-color: red;border: none;" @click="paycheck(this.getnumber,this.getindex)" :disabled="!this.holdname || !this.holdcardnumber || !this.holdcarddate || !this.holdcardpass">確認修改</button>
                           </div>
                         </div>
                       </div>

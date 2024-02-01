@@ -5,7 +5,7 @@
 
             <select class="form-select form-select mb-3" v-model="this.movieCinema">
                 <option selected class="textTX">選擇影院</option>
-                <option value="紹仁戲院" class="textTX">紹仁戲院</option>
+                <option value="紹人戲院" class="textTX">紹人戲院</option>
                 <option value="裕峰影城" class="textTX">裕峰影城</option>
                 <option value="梓宏影院" class="textTX">梓宏影院</option>
                 <option value="暐衡劇院" class="textTX">暐衡劇院</option>
@@ -47,8 +47,8 @@
             <button v-if="movieAllTime.length > 0" type="button" @click="deleteSelected()" class="buttonS">刪除</button>
             <div class="checkButton">
                 <button type="button" @click="backCreate()" class="buttonX">返回</button>
-                <button type="button" @click="createS()" class="buttonX">送出資料</button>
-                <button type="button" @click="createP()" class="buttonXL">送出資料並開啟售票</button>
+                <button type="button" @click="createS()" class="buttonX">儲存資料</button>
+                <button type="button" @click="createP()" class="buttonXL">儲存資料並開啟售票</button>
             </div>
         </div>
     </div>

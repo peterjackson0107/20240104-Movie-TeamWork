@@ -1,69 +1,3 @@
-<template>
-  <div class="view">
-    <div class="wrapper">
-      <button type="button" value="1" :class="{ active: selectedTab === '正在熱映' }" @click="selectTab('正在熱映')">
-        正在熱映
-      </button>
-      <button type="button" value="2" :class="{ active: selectedTab === '即將上映' }" @click="selectTab('即將上映'); upComing()">
-        即將上映
-      </button>
-    </div>
-    <div class="underline">
-      <div class="bar" v-if="selectedTab === '正在熱映'"></div>
-      <div class="bar1" v-if="selectedTab === '即將上映'"></div>
-    </div>
-
-
-
-    <div v-if="isLoading"><img style="width:500px ; height: 500px;" src="./ticket/picture/GIF.gif" alt=""></div>
-    <div v-else>
-      <div class="box-wrapper">
-        <div class="post-box" v-for="(movie, index) in paginatedMovies" :key="index" v-if="selectedTab === '正在熱映'">
-          <div class="post"><img :src="'https://image.tmdb.org/t/p/w500' + movie.poster_path" alt=""
-              @click="gotointroduce(movie)">
-              <div style="border:1.5px solid pink; border-radius: 0px 0px 10px 10px;">
-            <div style="color:black;" class="title">{{ movie.title }}</div>
-            <!-- <div class="title1">{{ movie.original_title }}</div>
-            <div>評分:{{ movie.vote_average === 0 ? '尚未有評分' : movie.vote_average }}</div> -->
-            <div style="color:black; margin-top: 0px; margin-bottom: 18px;">上映日:{{ movie.release_date }}</div>
-          </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="box-wrapper">
-        <div class="post-box" v-for="(movie, index) in paginatedUpcomingMovies" :key="index"
-          v-if="selectedTab === '即將上映'">
-          <div class="post"><img :src="'https://image.tmdb.org/t/p/w500' + movie.poster_path" alt=""
-              @click="gotointroduce(movie)">
-              <div style="border:1.5px solid pink; border-radius: 0px 0px 10px 10px;">
-            <div class="title" style="color:black; margin-top: 17px;">{{ movie.title }}</div>
-            <!-- <div class="title1">{{ movie.original_title }}</div>
-            <div>評分:{{ movie.vote_average === 0 ? '尚未有評分' : movie.vote_average }}</div> -->
-            <div style="color:black; margin-top: 12px; margin-bottom: 8px;">上映日:{{ movie.release_date }}</div>
-          </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="pagination" v-if="selectedTab === '正在熱映'">
-        <button @click="changePage('prev')" :disabled="currentPage === 1">上一頁</button>
-        <button v-for="number in pageNumbers" :key="number" @click="goToPage(number)"
-          :class="{ 'active-page': number === currentPage }">{{ number }}</button>
-        <button @click="changePage('next')" :disabled="currentPage * itemsPerPage >= objPlayingMovie.length">下一頁</button>
-      </div>
-
-      <div class="pagination" v-if="selectedTab === '即將上映'">
-        <button @click="changeUpcomingPage('prev')" :disabled="upcomingCurrentPage === 1">上一頁</button>
-        <button v-for="number in upcomingPageNumbers" :key="number" @click="goToUpcomingPage(number)"
-        :class="{ 'active-page': number === upcomingCurrentPage }">{{ number }}</button>
-        <button @click="changeUpcomingPage('next')"
-          :disabled="upcomingCurrentPage * upcomingItemsPerPage >= objUpComing.length">下一頁</button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script>
 export default {
   data() {
@@ -89,42 +23,49 @@ export default {
     //即將上映的頁碼轉跳
     goToUpcomingPage(page) {
       this.upcomingCurrentPage = page;
-      this.scrollToTop()
+      this.scrollToTop();
     },
     //正在熱映的頁碼轉跳
     goToPage(page) {
       this.currentPage = page;
-      this.scrollToTop()
+      this.scrollToTop();
     },
     //正在熱映的換頁方式
     changePage(action) {
-      if (action === 'prev' && this.currentPage > 1) {
+      if (action === "prev" && this.currentPage > 1) {
         this.currentPage--;
-      } else if (action === 'next' && (this.currentPage * this.itemsPerPage) < this.objPlayingMovie.length) {
+      } else if (
+        action === "next" &&
+        this.currentPage * this.itemsPerPage < this.objPlayingMovie.length
+      ) {
         this.currentPage++;
       }
-      this.scrollToTop()
+      this.scrollToTop();
     },
     //即將上映的換頁方式
     changeUpcomingPage(action) {
-      if (action === 'prev' && this.upcomingCurrentPage > 1) {
+      if (action === "prev" && this.upcomingCurrentPage > 1) {
         this.upcomingCurrentPage--;
-      } else if (action === 'next' && (this.upcomingCurrentPage * this.upcomingItemsPerPage) < this.objUpComing.length) {
+      } else if (
+        action === "next" &&
+        this.upcomingCurrentPage * this.upcomingItemsPerPage <
+          this.objUpComing.length
+      ) {
         this.upcomingCurrentPage++;
       }
-      this.scrollToTop()
+      this.scrollToTop();
     },
     //正在熱映跟即將上映的切換方式
     selectTab(tab) {
       this.selectedTab = tab;
-      this.currentPage = 1
-      this.upcomingCurrentPage = 1
+      this.currentPage = 1;
+      this.upcomingCurrentPage = 1;
     },
     //轉跳到電影介紹的方法
     gotointroduce(movie) {
-      console.log(movie)
+      console.log(movie);
       this.$router.push({
-        name: 'moviecomment',
+        name: "moviecomment",
         query: {
           movieGenreid: movie.genre_ids,
           movieId: movie.id,
@@ -135,7 +76,7 @@ export default {
           movieBack: movie.backdrop_path,
           movieReleasedate: movie.release_date,
           movieVoteavg: movie.vote_average,
-        }
+        },
       });
     },
     //上映中抓取
@@ -179,7 +120,11 @@ export default {
           });
           // 移除已存在的電影，避免重複
           for (const movie of moviesOnPage) {
-            if (!playingMovies.some((existingMovie) => existingMovie.title === movie.title)) {
+            if (
+              !playingMovies.some(
+                (existingMovie) => existingMovie.title === movie.title
+              )
+            ) {
               playingMovies.push(movie);
             }
           }
@@ -190,15 +135,18 @@ export default {
           }
         }
         // 過濾掉沒有 poster_path 的電影
-        const playMovies = playingMovies.filter((movie) => movie.poster_path && movie.overview).slice(0, count).sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
-        this.objPlayingMovie = playMovies
-        console.log('上映中 PlayMovies:', this.objPlayingMovie);
+        const playMovies = playingMovies
+          .filter((movie) => movie.poster_path && movie.overview)
+          .slice(0, count)
+          .sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
+        this.objPlayingMovie = playMovies;
+        console.log("上映中 PlayMovies:", this.objPlayingMovie);
       } catch (error) {
         console.error(error);
       } finally {
         this.isLoading = false; // 无论加载成功或失败，都将 isLoading 设置为 false
       }
-    },//即將上映抓取
+    }, //即將上映抓取
     async upComing() {
       this.isLoading = true;
       const options = {
@@ -241,7 +189,11 @@ export default {
           });
           // 移除已存在的電影，避免重複
           for (const movie of moviesOnPage) {
-            if (!comingMovies.some((existingMovie) => existingMovie.title === movie.title)) {
+            if (
+              !comingMovies.some(
+                (existingMovie) => existingMovie.title === movie.title
+              )
+            ) {
               comingMovies.push(movie);
             }
           }
@@ -252,9 +204,12 @@ export default {
           }
         }
         // 截取前 count 筆資料
-        const comeMovies = comingMovies.filter((movie) => movie.poster_path).slice(0, count).sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
+        const comeMovies = comingMovies
+          .filter((movie) => movie.poster_path)
+          .slice(0, count)
+          .sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
         this.objUpComing = comeMovies;
-        console.log('即將上映 ComeMovies:', this.objUpComing);
+        console.log("即將上映 ComeMovies:", this.objUpComing);
       } catch (error) {
         console.error(error);
       } finally {
@@ -263,7 +218,7 @@ export default {
     },
   },
   mounted() {
-    this.nowPlaying()
+    this.nowPlaying();
   },
   computed: {
     //把正在熱映的資料數切成index
@@ -274,7 +229,8 @@ export default {
     },
     //把即將上映的資料切成index
     paginatedUpcomingMovies() {
-      const startIndex = (this.upcomingCurrentPage - 1) * this.upcomingItemsPerPage;
+      const startIndex =
+        (this.upcomingCurrentPage - 1) * this.upcomingItemsPerPage;
       const endIndex = startIndex + this.upcomingItemsPerPage;
       return this.objUpComing.slice(startIndex, endIndex);
     },
@@ -302,9 +258,139 @@ export default {
       }
       return numbers;
     },
-  }
+  },
 };
 </script>
+
+<template>
+  <div class="view">
+    <div class="wrapper">
+      <button
+        type="button"
+        value="1"
+        :class="{ active: selectedTab === '正在熱映' }"
+        @click="selectTab('正在熱映')"
+      >
+        正在熱映
+      </button>
+      <button
+        type="button"
+        value="2"
+        :class="{ active: selectedTab === '即將上映' }"
+        @click="
+          selectTab('即將上映');
+          upComing();
+        "
+      >
+        即將上映
+      </button>
+    </div>
+    <div class="underline">
+      <div class="bar" v-if="selectedTab === '正在熱映'"></div>
+      <div class="bar1" v-if="selectedTab === '即將上映'"></div>
+    </div>
+    <div class="box-wrapper">
+        <div
+          class="post-box"
+          v-for="(movie, index) in paginatedMovies"
+          :key="index"
+          v-if="selectedTab === '正在熱映'"
+        >
+          <div class="post">
+            <img
+              :src="'https://image.tmdb.org/t/p/w500' + movie.poster_path"
+              alt=""
+              @click="gotointroduce(movie)"
+            />
+            <div
+              style="border: 1.5px solid pink; border-radius: 0px 0px 10px 10px"
+            >
+              <div style="color: black" class="title">{{ movie.title }}</div>
+              <!-- <div class="title1">{{ movie.original_title }}</div>
+            <div>評分:{{ movie.vote_average === 0 ? '尚未有評分' : movie.vote_average }}</div> -->
+              <div style="color: black; margin-top: 0px; margin-bottom: 18px">
+                上映日:{{ movie.release_date }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="box-wrapper">
+        <div
+          class="post-box"
+          v-for="(movie, index) in paginatedUpcomingMovies"
+          :key="index"
+          v-if="selectedTab === '即將上映'"
+        >
+          <div class="post">
+            <img
+              :src="'https://image.tmdb.org/t/p/w500' + movie.poster_path"
+              alt=""
+              @click="gotointroduce(movie)"
+            />
+            <div
+              style="border: 1.5px solid pink; border-radius: 0px 0px 10px 10px"
+            >
+              <div class="title" style="color: black; margin-top: 17px">
+                {{ movie.title }}
+              </div>
+              <!-- <div class="title1">{{ movie.original_title }}</div>
+            <div>評分:{{ movie.vote_average === 0 ? '尚未有評分' : movie.vote_average }}</div> -->
+              <div style="color: black; margin-top: 12px; margin-bottom: 8px">
+                上映日:{{ movie.release_date }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pagination" v-if="selectedTab === '正在熱映'">
+        <button @click="changePage('prev')" :disabled="currentPage === 1">
+          上一頁
+        </button>
+        <button
+          v-for="number in pageNumbers"
+          :key="number"
+          @click="goToPage(number)"
+          :class="{ 'active-page': number === currentPage }"
+        >
+          {{ number }}
+        </button>
+        <button
+          @click="changePage('next')"
+          :disabled="currentPage * itemsPerPage >= objPlayingMovie.length"
+        >
+          下一頁
+        </button>
+      </div>
+
+      <div class="pagination" v-if="selectedTab === '即將上映'">
+        <button
+          @click="changeUpcomingPage('prev')"
+          :disabled="upcomingCurrentPage === 1"
+        >
+          上一頁
+        </button>
+        <button
+          v-for="number in upcomingPageNumbers"
+          :key="number"
+          @click="goToUpcomingPage(number)"
+          :class="{ 'active-page': number === upcomingCurrentPage }"
+        >
+          {{ number }}
+        </button>
+        <button
+          @click="changeUpcomingPage('next')"
+          :disabled="
+            upcomingCurrentPage * upcomingItemsPerPage >= objUpComing.length
+          "
+        >
+          下一頁
+        </button>
+      </div>
+    </div>
+</template>
 
 <style scoped lang="scss">
 .view {
@@ -320,8 +406,9 @@ export default {
 
     button {
       width: 150px;
-      margin-top: 40px;
-      margin-right: 8px;
+      margin-top: 20px;
+      margin-right: 4px;
+      margin-left: 4px;
       border: none;
       background-color: #a4b3cc;
 
@@ -339,10 +426,8 @@ export default {
 
   .underline {
     width: 308px;
-    text-align: center;
-    margin: 3px auto 40px;
+    margin: 10px auto 20px auto;
     height: 2px;
-    margin-left: 610.5px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.3);
 
     .bar,
@@ -376,15 +461,13 @@ export default {
       width: 300px;
       height: 80vh;
       margin-right: 35px;
-    // border: 1px solid black;
-    // border: 1px solid black;
-
+      // border: 1px solid black;
+      // border: 1px solid black;
 
       .post {
         width: 300px;
         height: 60vh;
         max-height: 60vh;
-        
 
         img {
           height: 100%;
@@ -393,7 +476,6 @@ export default {
           border-radius: 10px 10px 0 0;
           object-fit: cover; // 保持圖片比例並填滿 img 區域
           cursor: pointer;
-          
         }
 
         .title {
@@ -401,7 +483,7 @@ export default {
           width: 270px;
           margin-left: 17px;
           margin-top: 10px;
-          
+
           // border: 1px solid black;
           text-align: center;
           text-overflow: ellipsis;
@@ -418,7 +500,6 @@ export default {
           white-space: nowrap;
           overflow: hidden;
         }
-
       }
     }
   }
@@ -441,24 +522,22 @@ export default {
       color: salmon; // 上一页、下一页的颜色
     }
   }
-
 }
 
 .pagination {
-        width: 100vw;
-        justify-content: center;
-        align-items: center;
-        button {
-            color: rgb(0, 0, 0);
-            font-size: 18pt;
-            // background-color: #525f75;
-            border: 0px;
+  width: 100vw;
+  justify-content: center;
+  align-items: center;
+  button {
+    color: rgb(0, 0, 0);
+    font-size: 18pt;
+    // background-color: #525f75;
+    border: 0px;
 
-            &.active-page,
-            &:hover {
-                color: rgb(141, 141, 125); // 上一页、下一页的颜色
-            }
-        }
-
+    &.active-page,
+    &:hover {
+      color: rgb(141, 141, 125); // 上一页、下一页的颜色
     }
-</style>  
+  }
+}
+</style>

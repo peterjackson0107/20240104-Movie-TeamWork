@@ -17,6 +17,7 @@ export default {
       trailerLink: null,
       type: [],
       movieType: [],
+      movieType1: [], // 此電影類型
       //評論區相關
       mymovie:[
         { title:"0",imgUrl:"/r5kvFAqfyDBFZzDY5XTJYxDidsZ.jpg"},
@@ -162,34 +163,39 @@ export default {
         return null; // 或者返回其他适当的值，视情况而定
       }
     },
-    getMovieType() { //電影類型 
-        const options = {
-        method: 'GET',
+    getMovieTypeToZhTW() { //電影類型轉中文
+      const options = {
+        method: "GET",
         headers: {
-          accept: 'application/json',
-          Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww'
-        }
+          accept: "application/json",
+          Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww",
+        },
       };
-      fetch('https://api.themoviedb.org/3/genre/movie/list?language=en', options)
+      fetch(
+        "https://api.themoviedb.org/3/genre/movie/list?language=en",
+        options
+      )
         .then((response) => response.json())
         .then((response) => {
-          this.type = response.genres,
-          console.log(this.type)
-          console.log(this.movielove.movieGenreid)
-          console.log(this.movielove.movieGenreid.length)
-          console.log(this.type.length)
-          console.log(this.movielove.movieGenreid[0])
-          console.log(this.type[6].id)
-          console.log(parseInt(this.movielove.movieGenreid[0])===this.type[6].id ? 1:2)
-          for(let i=0;i<this.movielove.movieGenreid.length;i++){
-            for(let j=0;j<this.type.length;j++)
-            if(parseInt(this.movielove.movieGenreid[i])===this.type[j].id){
-              this.movieType.push(this.type[j].name)
-            }
+          (this.type = response.genres), console.log(this.type);
+          console.log(this.type);
+          const a = ["動作", "冒險", "動畫", "喜劇", "犯罪", "紀錄", "劇情", "家庭", "奇幻", "歷史", "恐怖", "音樂", "懸疑", "愛情", "科幻", "電視電影", "驚悚", "戰爭", "西部"]
+          this.type = this.type.map((item, index) => {
+            return { ...item, name1: a[index] };
+          });
+          console.log(this.type);
+          for (let i = 0; i < this.movieInfo.movieGenreid.length; i++) {
+            for (let j = 0; j < this.type.length; j++)
+              if (
+                parseInt(this.movieInfo.movieGenreid[i]) === this.type[j].id
+              ) {
+                this.movieType1.push(this.type[j].name1);
+              }
           }
-          console.log(this.movieType)
+          console.log(this.movieType1);
         })
-        .catch(err => console.error(err));
+        .catch((err) => console.error(err));
     },
     splitMovies() {
       const pageSize = 9;
@@ -254,12 +260,8 @@ export default {
     console.log(this.movielove)
     console.log(this.movielove.movieGenreid)
     console.log(this.moviewall)
-    // console.log("Movie Details:", this.movieInfo);
-    // this.getPerson();
-    // await this.getTrailer();
-    // await this.getMovieType();
     setTimeout(() => {
-      this.getMovieType();
+      this.getMovieTypeToZhTW();
       this.getPerson();
     }, 500);
     setTimeout(() => {
@@ -302,15 +304,15 @@ export default {
   <div class="body">
     <!-- 電影資料 -->
     <div class="header">
-      <button type="button" @click="goback">回去後台</button>
+      <button type="button" @click="goback" class="buttonX">回去重新建立</button>
       <div class="movieData">
         <!-- <img :src="'https://image.tmdb.org/t/p/w342' + this.movieInfo.movieBack " alt="" style="width: 100vw; height: 100vh; opacity: 0.2; position: fixed; top: 0; left: 0;"><br> -->
         <div class="movieDataLeft">
           <img :src="'https://image.tmdb.org/t/p/w500' + this.movielove.moviePoster" alt=""/>
         </div>
         <div class="movieDataRight">
-          <h1>{{ this.movielove.movieTitle }}</h1>
-          <h6>{{ this.movielove.movieOriginaltitle }}</h6>
+          <h1 class="textHeader">{{ this.movielove.movieTitle }}</h1>
+          <h6 class="textall">{{ this.movielove.movieOriginaltitle }}</h6>
           <h2 class="textHeader">上映日期：{{ this.movielove.movieReleasedate }}</h2>
           <hr />
           <h2>Movie Info</h2>
@@ -318,15 +320,17 @@ export default {
             <div class="movieDataRight22">
               <div class="type">
                 <h3 class="textHeader">類型：</h3>
-                <span class="textall" style="line-height: 50px;" v-for="(item,index) in this.movieType" :key="index">{{ item }}<span v-if="index < this.movieType.length - 1" class="textall" style="font-size: 1em;">、</span></span><br>
+                <span class="textall" style="line-height: 50px;" v-for="(item,index) in this.movieType1" :key="index">{{ item }}<span v-if="index < this.movieType1.length - 1" class="textall" style="font-size: 1em;">、</span></span><br>
               </div>
               <div class="director">
                 <h3 class="textHeader">導演：</h3>
                 <span class="textall" style="line-height: 50px;" v-for="(item, index) in this.directors" :key="index">{{ item.original_name }}<span v-if="index < this.directors.length - 1">,</span></span><br>
               </div>
               <div class="casts">
-                <h3 class="textHeader" style="width: 90px; height: 50px;">演員：</h3>
-                <div style="width: 90%;display: flex;"><p class="textall" style="line-height: 50px;" v-for="(item, index) in this.casts" :key="index">{{ item.original_name }}<span v-if="index < this.casts.length - 1" class="textall" style="font-size: 1em;">、</span></p><br></div>
+                <h3 class="textHeader" style="width: 105px; height: 50px">演員：</h3>
+                <div style="width: 90%; display: flex ;flex-wrap: wrap;">
+                  <p class="textall" style="line-height: 50px;" v-for="(item, index) in this.casts" :key="index">{{ item.original_name }}<span v-if="index < this.casts.length - 1" class="textall" style="font-size: 1em;">、</span></p><br>
+                </div>
               </div>
               <div class="voteAvg">
                 <h3 class="textHeader">評分：</h3>
@@ -342,39 +346,33 @@ export default {
         </div>
       </div>
     </div>
-    <hr />
     <!-- 預告片 -->
+    <div class="down" style="margin-top: 30px;margin-bottom: 30px;">
+        <div class="turn FontA">
+          預告片
+        </div>
+      </div>
     <div class="middle">
       <!-- <h1>預告片</h1> -->
       <!-- <video :src="this.trailerLink" controls></video> -->
       <!-- <iframe :src="this.trailerLink" controls></iframe>-->
       <iframe width="1100" height="630" :src="'https://www.youtube.com/embed/' + trailerLink" frameborder="0" allowfullscreen></iframe>
     </div>
-    <hr />
     <!-- 討論區 -->
-    <h1 class="textTilte">個人影評</h1>
+    <div class="down" style="margin-top: 30px;margin-bottom: 30px;">
+        <div class="turn FontA">
+          個人影評
+        </div>
+      </div>
     <div class="comment">
       <textarea class="text" v-model="this.commentText" name="" id="" cols="30" rows="10" style="resize: none;height: 300px;width: 80%; margin-bottom: 10px;" placeholder="這裡可撰寫你自己對這部電影的想法心得"></textarea>
     </div>
-    <!-- <p class="text">我的電影清單（可以以電影海報的方式排列，像
-      是裝飾自己房間的牆壁一樣，一頁可以放滿九張海報，
-      電影清單裡面的資料一樣會影響到＂為你推薦＂功能）我的電影清單（可以以電影海報的方式排列，像
-      是裝飾自己房間的牆壁一樣，一頁可以放滿九張海報，
-      電影清單裡面的資料一樣會影響到＂為你推薦＂功能）
-      我的電影清單（可以以電影海報的方式排列，像
-      是裝飾自己房間的牆壁一樣，一頁可以放滿九張海報，
-      電影清單裡面的資料一樣會影響到＂為你推薦＂功能）
-      我的電影清單（可以以電影海報的方式排列，像
-      是裝飾自己房間的牆壁一樣，一頁可以放滿九張海報，
-      電影清單裡面的資料一樣會影響到＂為你推薦＂功能）
-      我的電影清單（可以以電影海報的方式排列，像
-      是裝飾自己房間的牆壁一樣，一頁可以放滿九張海報，
-      電影清單裡面的資料一樣會影響到＂為你推薦＂功能）
-      我的電影清單（可以以電影海報的方式排列，像
-      是裝飾自己房間的牆壁一樣，一頁可以放滿九張海報，
-      電影清單裡面的資料一樣會影響到＂為你推薦＂功能）
-  </p> -->
-  <button type="button" @click="gosend()">gosend</button>
+  <button type="button" @click="gosend()" class="buttonX">確認送出</button>
+  <div class="down" style="margin-top: 30px;margin-bottom: 60px;">
+        <div class="turn FontA">
+          推薦電影
+        </div>
+      </div>
     <div class="footer" ref="scheduleSwipers">
       <swiper :options="swiperOption" ref="mySwiper">
         <swiper-slide v-for="(page, index) in pages" :key="index">
@@ -625,4 +623,56 @@ span, button {
   max-height: 250px;  /* 设置最大高度，超出部分会产生滚动条 */
   // white-space: nowrap;  /* 防止文本换行 */
 }
+
+.buttonX {
+    width: 14.2vw;
+    height: 5.9vh;
+    border: none;
+    background-color: rgb(127, 136, 180);
+    border-radius: 10px;
+    font-size: 1.5em;
+    font-family: 'jf-openhuninn-2.0';
+    margin-top: 2.5%;
+    transition: 0.4s;
+    line-height: 1em;
+    margin: 20px 20px 10px 20px;
+    color: rgb(0, 0, 0);
+
+    &:hover {
+        background-color: rgb(63, 85, 195);
+        color: rgb(255, 255, 255);
+        transform: scale(1.1, 1.1);
+    }
+}
+
+.down {
+      display: flex;
+      justify-content: start;
+      width: 100vw;
+      height: 4em;
+      margin-left: auto;
+      margin-right: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid rgb(230, 230, 230);
+      .turn {
+        font-weight: 300;
+        letter-spacing: 0.5em;
+        color: rgb(51, 51, 51);
+        height: 100%;
+        margin-left: 5vw;
+        font-size: 1.5em;
+        padding: 0px 2em;
+        display: flex;
+        align-items: center;
+        border-left: 1px solid rgb(230, 230, 230);
+        border-right: 1px solid rgb(230, 230, 230);
+        background: repeating-linear-gradient(-45deg,
+            rgba(0, 0, 0, 0.067),
+            rgba(0, 0, 0, 0.067) 2px,
+            rgba(0, 0, 0, 0) 2px,
+            rgba(0, 0, 0, 0) 4px);
+      }
+    }
 </style>

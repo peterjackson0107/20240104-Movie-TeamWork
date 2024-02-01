@@ -61,6 +61,7 @@ export default {
               Cookies.set('account', this.account, { expires: 7, path: '/' });
               // Cookies.set('admin', true, { expires: 7, path: '/' });
               this.login(this.account)
+              Swal.fire('登入成功，歡迎管理者');
               this.$router.push("/")
             }
             if(data.code == 200){
@@ -71,6 +72,7 @@ export default {
               console.log(Cookies.get('account'))
               console.log(this.getAuth)
               console.log(this.getuser)
+              Swal.fire('登入成功');
               this.$router.push("/")
             }
             if(data.rtnCode == "Account not verify"){
@@ -167,7 +169,7 @@ export default {
 <template>
     <div class="cBox">
         <div class="box">
-            <p class="textT">這裡是登入</p>
+            <p class="textT">登入</p>
             <p class="textL">帳號</p>
             <div class="form-floating mb-3">
                 <input type="text" class="form-control tb" id="floatingInput" placeholder="" v-model="this.account">
@@ -242,7 +244,7 @@ export default {
 <style scoped lang="scss">
 .cBox{
   width: 100vw;
-  height: 90vh;
+  height: 92vh;
   text-align: center;
   display: flex;
   justify-content: center;

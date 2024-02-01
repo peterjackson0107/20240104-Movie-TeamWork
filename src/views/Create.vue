@@ -12,9 +12,9 @@ export default defineComponent({
 
   data() {
     return {
-      searchMode: 'original',   // 搜尋模式：original（原始）或 result（結果）
-      searchText: '',           // 搜尋文字
-      searchResults: '',         // 搜尋結果
+      searchMode: 'original',   //  搜尋模式：original（原始）或 result（結果）
+      searchText: '',           //   搜尋文字
+      searchResults: '',         //  搜尋結果
       convasIsCloss: false,
       convasIs: false,
       //電影相關
@@ -133,6 +133,10 @@ export default defineComponent({
       // 仅显示前 maxVisibleCards 个过滤后的卡片
       return this.filteredMovies.slice(0, this.maxVisibleCards);
     },
+
+
+ 
+    
   },
 
   methods: {
@@ -260,11 +264,12 @@ export default defineComponent({
             title: "作品已保存!",
             text: "請『重新搜尋』查看你的創作!",
             icon: "success",
+            confirmButtonText:'OK',
             showCloseButton:true,
             allowOutsideClick:false,
-            showConfirmButton: false, // 不显示确认按钮
+            // showConfirmButton: false, // 不显示确认按钮
         }).then(() => {
-            window.location.reload();
+          window.location.reload();
         });
         })
         .catch(error => {
@@ -499,9 +504,10 @@ export default defineComponent({
         title: "會員身分進入!",
         text: "請點選『電影海報』開始創作!",
         icon: "success",
+        confirmButtonText:'OK',
         showCloseButton:true,
         allowOutsideClick:false,
-        showConfirmButton: false, // 不显示确认按钮
+        // showConfirmButton: false, // 不显示确认按钮
 
       });
     } else {
@@ -510,9 +516,10 @@ export default defineComponent({
         title: "訪客身分進入!",
         text: "如需『創作』請登入會員!",
         icon: "success",
+        confirmButtonText:'OK',
         showCloseButton:true,
         allowOutsideClick:false,
-        showConfirmButton: false, // 不显示确认按钮
+        // showConfirmButton: false, // 不显示确认按钮
       });
         }
         

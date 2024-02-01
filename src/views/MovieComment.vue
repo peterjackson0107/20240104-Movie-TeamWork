@@ -1,6 +1,7 @@
 <script>
 import Cookies from "js-cookie";
 import axios from "axios";
+import Swal from 'sweetalert2'
 import { NCarousel } from "naive-ui";
 export default {
   data() {
@@ -11,6 +12,7 @@ export default {
       trailerLink: null,
       type: [], // 所有類型19個
       movieType: [], // 此電影類型
+      movieType1: [], // 此電影類型
       movieTime: "",
       hours: "",
       minutes: "",
@@ -41,6 +43,7 @@ export default {
   },
   components: {
     NCarousel,
+    Swal,
   },
   computed: {
     sortComments() { // 篩選留言
@@ -137,6 +140,40 @@ export default {
               }
           }
           console.log(this.movieType);
+        })
+        .catch((err) => console.error(err));
+    },
+    getMovieTypeToZhTW() { //電影類型轉中文
+      const options = {
+        method: "GET",
+        headers: {
+          accept: "application/json",
+          Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZTBiNGVhYWYyMjVhZTdmYzFhNjdjYzk0ODk5Mjk5OSIsInN1YiI6IjY1N2ZjYzAzMGU2NGFmMDgxZWE4Mjc3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.3d6GcXTBf2kwGx9GzG7O4_8eCoHAjGxXNr9vV1lVXww",
+        },
+      };
+      fetch(
+        "https://api.themoviedb.org/3/genre/movie/list?language=en",
+        options
+      )
+        .then((response) => response.json())
+        .then((response) => {
+          (this.type = response.genres), console.log(this.type);
+          console.log(this.type);
+          const a = ["動作", "冒險", "動畫", "喜劇", "犯罪", "紀錄", "劇情", "家庭", "奇幻", "歷史", "恐怖", "音樂", "懸疑", "愛情", "科幻", "電視電影", "驚悚", "戰爭", "西部"]
+          this.type = this.type.map((item, index) => {
+            return { ...item, name1: a[index] };
+          });
+          console.log(this.type);
+          for (let i = 0; i < this.movieInfo.movieGenreid.length; i++) {
+            for (let j = 0; j < this.type.length; j++)
+              if (
+                parseInt(this.movieInfo.movieGenreid[i]) === this.type[j].id
+              ) {
+                this.movieType1.push(this.type[j].name1);
+              }
+          }
+          console.log(this.movieType1);
         })
         .catch((err) => console.error(err));
     },
@@ -496,7 +533,7 @@ export default {
         });
     },
     cinemaSearch(selectedCinema) {
-      const movieId = this.movieInfo.movieId;
+      const movie = this.movieInfo.movieTitle;
       const movieName = selectedCinema;
       axios({
         url: 'http://localhost:8080/movie/movieinfo/search',
@@ -505,7 +542,7 @@ export default {
           "Content-Type": "application/json"
         },
         data: {
-          movieId: movieId,
+          movie: movie,
           cinema: movieName
         },
       }).then(res => {
@@ -517,18 +554,20 @@ export default {
           // 将日期字符串转换为 Date 对象进行比较
           return new Date(a.onDate) - new Date(b.onDate);
         });
-        // 过滤出小于或等于今天日期的电影信息
+        // 过滤出小于或等于今天日期的电影信息，并且 onSell 为 true
         const today = new Date()
-        this.objPlayingMovie = this.objPlayingMovie.filter(movie => new Date(movie.onDate) >= today);
+        this.objPlayingMovie = this.objPlayingMovie.filter(movie => new Date(movie.onDate) >= today && movie.onSell);
       });
     },
     gotoSeat(movie) {
       if (!this.selectedTime) {
         // 如果沒有選擇時間，可以進行相應的處理，例如顯示提示訊息
-        alert('請選擇時間');
+        // alert('請選擇時間');
+        Swal.fire("請選擇時間")
         return;
       }
       // 在這裡可以進行相應的處理，比如導航到座位選擇頁面
+      Swal.fire("開始選取座位")
       this.$router.push({
         name: 'seat',
         query: {
@@ -553,6 +592,7 @@ export default {
     this.getTrailer();
     this.getPerson();
     this.getMovieType();
+    this.getMovieTypeToZhTW();
     this.commentSearch();
     this.getMovieTime();
     this.searchPicture();
@@ -589,7 +629,7 @@ export default {
             <div class="movieDataRight22">
               <div class="type">
                 <h3 class="textHeader">類型：</h3>
-                <span class="textall" style="line-height: 50px" v-for="(item, index) in this.movieType" :key="index">{{
+                <span class="textall" style="line-height: 50px" v-for="(item, index) in this.movieType1" :key="index">{{
                   item }}<span v-if="index < this.movieType.length - 1" class="textall" style="font-size: 1em">、</span></span><br />
               </div>
               <div class="director">
@@ -602,8 +642,8 @@ export default {
               </div>
               <div class="casts">
                 <h3 class="textHeader" style="width: 105px; height: 50px">演員：</h3>
-                <div style="width: 90%; display: flex">
-                  <p class="textall" style="line-height: 50px" v-for="(item, index) in this.casts" :key="index">{{ item.original_name }}<span v-if="index < this.casts.length - 1" class="textall" style="font-size: 1em">、</span></p><br />
+                <div style="width: 90%; display: flex ;flex-wrap: wrap;">
+                  <span class="textall" style="line-height: 50px;" v-for="(item, index) in this.casts" :key="index">{{ item.original_name }}<span v-if="index < this.casts.length - 1" class="textall" style="font-size: 1em">、</span></span><br />
                 </div>
               </div>
               <div class="voteAvg">
@@ -623,12 +663,17 @@ export default {
     <!-- <hr /> -->
 
     <!-- 預告片 -->
+    <div class="down" style="margin-top: 30px;">
+        <div class="turn FontA">
+          預告片
+        </div>
+      </div>
     <div class="middleInfo" style="margin-top: 50px; ">
-      <div class="middle">
+      <!-- <div class="middle">
         <div class="mid FontA">
           電影預告
         </div>
-      </div>
+      </div> -->
       <div class="trailer">
         <iframe width="720" height="480" :src="'https://www.youtube.com/embed/' + trailerLink" frameborder="0" allowfullscreen></iframe>
       </div>
@@ -640,28 +685,33 @@ export default {
     </div>
     <!-- 選擇影城 -->
     <div class="middle1" v-if="this.userLoggedIn">
-      <div class="selectTheater" style="color:#557;">
+      <div class="selectTheater" style="color:#557;margin-left: 260px;">
         選取影城
       </div>
       <div class="selectButton">
-        <button style="font-family:'jf-openhuninn-2.0'; border-radius: 6px; font-size: 15pt; color:#557; background-color: #d1d8e3; " type="button" @click="cinemaSearch('紹仁戲院')">紹仁戲院</button>
-        <button style="font-family:'jf-openhuninn-2.0'; border-radius: 6px; font-size: 15pt; color:#557; background-color: #d1d8e3;" type="button" @click="cinemaSearch('裕峰影城')">裕峰影城</button>
-        <button style="font-family:'jf-openhuninn-2.0'; border-radius: 6px; font-size: 15pt; color:#557; background-color: #d1d8e3;" type="button" @click="cinemaSearch('梓宏影院')">梓宏影院</button>
-        <button style="font-family:'jf-openhuninn-2.0'; border-radius: 6px; font-size: 15pt; color:#557; background-color: #d1d8e3;" type="button" @click="cinemaSearch('暐衡劇院')">暐衡劇院</button>
+        <button style="font-family:'jf-openhuninn-2.0'; border-radius: 6px; font-size: 15pt; color:#557; background-color: #d1d8e3; " type="button" @click="cinemaSearch('紹人戲院')">桃園紹仁戲院</button>
+        <button style="font-family:'jf-openhuninn-2.0'; border-radius: 6px; font-size: 15pt; color:#557; background-color: #d1d8e3;" type="button" @click="cinemaSearch('裕峰影城')">基隆裕峰影城</button>
+        <button style="font-family:'jf-openhuninn-2.0'; border-radius: 6px; font-size: 15pt; color:#557; background-color: #d1d8e3;" type="button" @click="cinemaSearch('梓宏影院')">新竹梓宏影院</button>
+        <button style="font-family:'jf-openhuninn-2.0'; border-radius: 6px; font-size: 15pt; color:#557; background-color: #d1d8e3;" type="button" @click="cinemaSearch('暐衡劇院')">台北暐衡劇院</button>
       </div>
       <div class="selectDate" v-for="(movie, index) in objPlayingMovie">
-        <h6 style="font-family:'jf-openhuninn-2.0'; color: #557;">{{ movie.onDate }}</h6>
-        <h5 style="font-family:'jf-openhuninn-2.0'; color: #557;">{{ movie.area }}</h5>
-        <select style="font-family:'jf-openhuninn-2.0'; color: #557;" v-model="this.selectedTime">
+        <h6 style="font-family:'jf-openhuninn-2.0'; color: #557;" >{{ movie.onDate }}</h6>
+        <h5 style="font-family:'jf-openhuninn-2.0'; color: #557;" >{{ movie.area }}</h5>
+        <select style="font-family:'jf-openhuninn-2.0'; color: #557;" v-model="this.selectedTime" >
           <option style=" " value="">選擇時間</option>
           <option v-for="(time, timeIndex) in JSON.parse(movie.onTime)" :key="timeIndex">{{ time }}</option>
         </select>
-        <button style="font-family:'jf-openhuninn-2.0'; border-radius: 6px; font-size: 12pt; color:#557; background-color: #d1d8e3;" type="button" @click="gotoSeat(movie)">選取位置</button>
+        <button style="font-family:'jf-openhuninn-2.0'; border-radius: 6px; font-size: 12pt; color:#557; background-color: #d1d8e3;" type="button" @click="gotoSeat(movie)" >選取位置</button>
       </div>
     </div>
 
     <!-- 創作區 -->
-    <h1 style="font-family:'jf-openhuninn-2.0'; color: #557;">網友創作展示</h1>
+    <div class="down" style="margin-top: 30px;margin-bottom: 30px;">
+        <div class="turn FontA">
+          影迷創作展示
+        </div>
+      </div>
+    <!-- <h1 style="font-family:'jf-openhuninn-2.0'; color: #557;">網友創作展示</h1> -->
     <div class="ShowPoster">
       <div v-if="carouselImages.length === 0">
         <h4 style="font-family:'jf-openhuninn-2.0'; color: #557;">此電影暫無創作</h4>
@@ -680,7 +730,12 @@ export default {
     </div>
 
     <!-- 討論區 -->
-    <h1 style="font-family:'jf-openhuninn-2.0'; color: #557;">討論區</h1>
+    <div class="down" style="margin-top: 30px;margin-bottom: 30px;">
+        <div class="turn FontA">
+          討論區
+        </div>
+      </div>
+    <!-- <h1 style="font-family:'jf-openhuninn-2.0'; color: #557;">討論區</h1> -->
     <div class="footer">
       <div class="row">
         <div class="col-md-8">
@@ -1073,7 +1128,7 @@ span, button {
     }
     .selectButton {
       width: 100vw;
-      border-bottom: 3px solid rgb(238, 238, 238);
+      // border-bottom: 3px solid rgb(238, 238, 238);
       button {
         width: 10vw;
         height: 6vh;
@@ -1088,7 +1143,7 @@ span, button {
       padding: 1em 0px;
       justify-content: space-around;
       align-items: center;
-      border-bottom: 3px solid rgb(238, 238, 238);
+      border-top: 3px solid rgb(238, 238, 238);
       font-weight: 300;
     }
   }
@@ -1124,7 +1179,7 @@ span, button {
 }
 .selectButton {
   width: 100vw;
-  border-bottom: 3px solid rgb(238, 238, 238);
+  // border-bottom: 3px solid rgb(238, 238, 238);
 
   button {
     margin-right: 1em;
@@ -1153,4 +1208,35 @@ span, button {
 .FontB{
   font-family:'jf-openhuninn-2.0'; 
 }
+
+.down {
+      display: flex;
+      justify-content: start;
+      width: 100vw;
+      height: 4em;
+      margin-left: auto;
+      margin-right: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid rgb(230, 230, 230);
+      .turn {
+        font-weight: 300;
+        letter-spacing: 0.5em;
+        color: rgb(51, 51, 51);
+        height: 100%;
+        margin-left: 5vw;
+        font-size: 1.5em;
+        padding: 0px 2em;
+        display: flex;
+        align-items: center;
+        border-left: 1px solid rgb(230, 230, 230);
+        border-right: 1px solid rgb(230, 230, 230);
+        background: repeating-linear-gradient(-45deg,
+            rgba(0, 0, 0, 0.067),
+            rgba(0, 0, 0, 0.067) 2px,
+            rgba(0, 0, 0, 0) 2px,
+            rgba(0, 0, 0, 0) 4px);
+      }
+    }
 </style>
