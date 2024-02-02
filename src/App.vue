@@ -20,11 +20,13 @@ import Header from './components/Header.vue';
   width: 100vw;
   .header {
   height: 8vh;
+  overflow-x: hidden;
 }
   .content{
   width: 100vw;
   height: 92vh;
   text-align: center;
+  overflow-x: hidden;
   }
 }
 
