@@ -535,7 +535,7 @@ export default {
 <template>
   <h1>上映中電影</h1>
   <div class="container">
-    <div id="carouselExample" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2000">
+    <div id="carouselExample" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
       <div class="carousel-inner">
         <div v-for="(itemsChunk, index) in playPerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
           <div class="row">
@@ -572,7 +572,7 @@ export default {
   </div>
   <h1>近期上映電影</h1>
   <div class="container">
-    <div id="carouselExample1" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2000">
+    <div id="carouselExample1" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
       <div class="carousel-inner">
         <div v-for="(itemsChunk, index) in comePerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
           <div class="row">
@@ -609,7 +609,7 @@ export default {
   </div>
   <h1>為你推薦</h1>
   <div class="container">
-    <div id="carouselExample2" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2000">
+    <div id="carouselExample2" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
       <div class="carousel-inner">
         <div v-for="(itemsChunk, index) in popularPerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
           <div class="row">
@@ -651,7 +651,7 @@ export default {
       搜尋
     </button>
 
-    <div id="carouselExample3" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2000">
+    <div id="carouselExample3" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
       <div class="carousel-inner">
         <div v-for="(itemsChunk, index) in searchPerPage" :key="index" :class="['carousel-item', index === currentSlide ? 'active' : '']">
           <div class="row">
